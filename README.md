@@ -1,29 +1,6 @@
-# README #
-
-This README would normally document whatever steps are necessary to get your application up and running.
-
+# Compiler Construction #
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+* This is for the course CS F303 - Compiler Construction at Birla Institute of Technology and Science, Pilani.
+* The course is being conducted by [Ms. Vandana Agarwal](http://universe.bits-pilani.ac.in/pilani/vandana/Profile).
+* The compiler construction is being done in a group of 2 as per the language specification given by the instructor.
