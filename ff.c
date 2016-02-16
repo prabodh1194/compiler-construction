@@ -4,7 +4,7 @@
 
 struct y
 {
-    char a[13];
+    char a[20];
     struct y *next;
     char eps;
     char follow;
@@ -50,7 +50,7 @@ char * first(char a, char b)
                 if(c[k]=='\0')
                     break;
                 i = first(c[k],c[k+1]);
-                if(i[0]=='e'&&i[1]=='1')
+                if(i[0]=='e'&&i[1]=='2')
                 {
                     if(c[k+2]='\0')
                     {
@@ -81,9 +81,12 @@ char * follow(char a, char b)
     res = (char *)malloc(sizeof(char)*10);
     d[0]=a; d[1]=b; d[2]='\0';
 
+    if(ptr[a-65][b-48][2]->follow==3) //follow calculation in progrss. Prevents cycles
+        return "\0\b";
     if(ptr[a-65][b-48][2]->follow==2)
         return ptr[a-65][b-48][2]->a;
 
+    ptr[a-65][b-48][2]->follow=3; //follow calculation in progrss. Prevents cycles
     for (i = 0; i < 26; i++) 
     {
         for (j = 0; j < 10; j++) 
@@ -96,7 +99,7 @@ char * follow(char a, char b)
                 if(c!=NULL)
                 {
                     int pos = strlen(head->a)-strlen(c); //position of pointer
-                    if(pos!=0)
+                    if(pos!=0 && (c[0]-65!=i && c[1]-48!=j))
                     {
                         if(c[2]!='\0') //rules 1 & 2
                         {
@@ -112,6 +115,7 @@ char * follow(char a, char b)
             }
         }
     }
+    ptr[a-65][b-48][2]->follow=2;
     return res;
 }
 
@@ -164,7 +168,7 @@ int main(void)
                     if(b[k]=='\0')
                         break;
                     c=first(b[k],b[k+1]);
-                    if(c[0]=='e' && c[1]=='1') //epsilon
+                    if(c[0]=='e' && c[1]=='2') //epsilon
                     {
                         if(b[k+2]=='\0')
                             ptr[i][j][1]->eps = 2 ;
