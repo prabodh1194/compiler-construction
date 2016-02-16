@@ -6,6 +6,8 @@ struct y
 {
     char a[13];
     struct y *next;
+    char eps;
+    char follow;
 };
 
 struct y *ptr[26][10][3];
@@ -51,7 +53,10 @@ char * first(char a, char b)
                 if(i[0]=='e'&&i[1]=='1')
                 {
                     if(c[k+2]='\0')
-                        strcat(p[1]->a,i);
+                    {
+                        //append epsilon
+                        p[1]->eps=2;
+                    }
                 }
                 else
                 {
@@ -68,9 +73,51 @@ char * first(char a, char b)
         return p[1]->a;
 }
 
+char * follow(char a, char b)
+{
+    int i,j;
+    struct y **p, *head; char *c, *d, *res;
+    d = (char *)malloc(sizeof(char)*3);
+    res = (char *)malloc(sizeof(char)*10);
+    d[0]=a; d[1]=b; d[2]='\0';
+
+    if(ptr[a-65][b-48][2]->follow==2)
+        return ptr[a-65][b-48][2]->a;
+
+    for (i = 0; i < 26; i++) 
+    {
+        for (j = 0; j < 10; j++) 
+        {
+            p = ptr[i][j];
+            head=p[0];
+            while(head!=NULL)
+            {
+                c = strstr(head->a,d);
+                if(c!=NULL)
+                {
+                    int pos = strlen(head->a)-strlen(c); //position of pointer
+                    if(pos!=0)
+                    {
+                        if(c[2]!='\0') //rules 1 & 2
+                        {
+                            strcat(res,first(c[2],c[3])); //rule 1
+                            if((c[2]>=65&&c[2]<=90) && ptr[c[2]-65][c[3]-48][1]->eps==2) //rule 2 and terminal can't have eps in its first()
+                                strcat(res,follow((i+65),(j+48)));
+                        }
+                        else if(pos==2) //rule 3
+                            strcat(res,follow((i+65),(j+48)));
+                    }
+                }
+                head=head->next;
+            }
+        }
+    }
+    return res;
+}
+
 int main(void)
 {
-    int i,l,j,k;
+    int i,l,j,k,flag=0;
     char a[524], *b, *c;
     struct y *head;
 
@@ -80,11 +127,22 @@ int main(void)
             ptr[i][j][0]=NULL;
             ptr[i][j][1]=(struct y *)malloc(sizeof(struct y));
             ptr[i][j][2]=(struct y *)malloc(sizeof(struct y));
+            ptr[i][j][1]->eps=1;
+            ptr[i][j][1]->follow=1;
         }
 
     while((l=scanf("%s",a))!=EOF)
+    {
         add(&ptr[a[0]-65][a[1]-48][0],(a+3));
+        if(!flag)
+        {
+            flag=1;
+            strcpy(ptr[a[0]-65][a[1]-48][2]->a,"$1\0");
+        }
+    }
 
+    printf("\nFIRST SETS\n");
+    //find first set
     for(i=0;i<26;i++)
     {
         for(j=0;j<10;j++)
@@ -109,7 +167,7 @@ int main(void)
                     if(c[0]=='e' && c[1]=='1') //epsilon
                     {
                         if(b[k+2]=='\0')
-                            strcat(ptr[i][j][1]->a ,c );
+                            ptr[i][j][1]->eps = 2 ;
                     }
                     else
                     {
@@ -121,6 +179,23 @@ int main(void)
                 head=head->next;
             }
             printf("%c%c:%s\n",(i+65),(j+48),ptr[i][j][1]->a);
+        }
+    }
+
+    printf("\nFOLLOW SETS\n");
+    struct y **p;
+    //find follow set
+    for (i = 0; i < 26; i++) 
+    {
+        for (j = 0; j < 10; j++) 
+        {
+            p = ptr[i][j];
+            if(p[0]!=NULL)
+            {
+                strcat(p[2]->a,follow((i+65),(j+48)));
+                printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
+                p[2]->follow=2;
+            }
         }
     }
     return 0;
