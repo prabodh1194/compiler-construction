@@ -81,10 +81,9 @@ char * follow(char a, char b)
     res = (char *)malloc(sizeof(char)*10);
     d[0]=a; d[1]=b; d[2]='\0';
 
-    if(ptr[a-65][b-48][2]->follow==3) //follow calculation in progrss. Prevents cycles
-        return "\0\b";
-    if(ptr[a-65][b-48][2]->follow==2)
+    if(ptr[a-65][b-48][2]->follow>=2)
         return ptr[a-65][b-48][2]->a;
+    ptr[a-65][b-48][2]->follow=3;
 
     ptr[a-65][b-48][2]->follow=3; //follow calculation in progrss. Prevents cycles
     for (i = 0; i < 26; i++) 
@@ -99,7 +98,7 @@ char * follow(char a, char b)
                 if(c!=NULL)
                 {
                     int pos = strlen(head->a)-strlen(c); //position of pointer
-                    if(pos!=0 && (c[0]-65!=i && c[1]-48!=j))
+                    if(c[0]-65!=i || c[1]-48!=j)
                     {
                         if(c[2]!='\0') //rules 1 & 2
                         {
@@ -107,7 +106,7 @@ char * follow(char a, char b)
                             if((c[2]>=65&&c[2]<=90) && ptr[c[2]-65][c[3]-48][1]->eps==2) //rule 2 and terminal can't have eps in its first()
                                 strcat(res,follow((i+65),(j+48)));
                         }
-                        else if(pos==2) //rule 3
+                        else if(pos>=2) //rule 3
                             strcat(res,follow((i+65),(j+48)));
                     }
                 }
@@ -115,7 +114,7 @@ char * follow(char a, char b)
             }
         }
     }
-    ptr[a-65][b-48][2]->follow=2;
+    //ptr[a-65][b-48][2]->follow=2;
     return res;
 }
 
@@ -196,6 +195,7 @@ int main(void)
             p = ptr[i][j];
             if(p[0]!=NULL)
             {
+                p[2]->follow=1;
                 strcat(p[2]->a,follow((i+65),(j+48)));
                 printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
                 p[2]->follow=2;
