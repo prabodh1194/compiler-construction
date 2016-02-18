@@ -52,7 +52,7 @@ char * first(char a, char b)
                 i = first(c[k],c[k+1]);
                 if(i[0]=='e'&&i[1]=='2')
                 {
-                    if(c[k+2]='\0')
+                    if(c[k+2]=='\0')
                     {
                         //append epsilon
                         p[1]->eps=2;
@@ -61,7 +61,10 @@ char * first(char a, char b)
                 else
                 {
                     strcat(p[1]->a,i);
-                    break;
+                    if(c[k]>=65 && c[k]<=90&&ptr[c[k]-65][c[k+1]-48][1]->eps!=2) // for terminals
+                        break;
+                    else if(c[k]<65 || c[k]>90)
+                        break;
                 }
                 k+=2;
             }
@@ -83,7 +86,6 @@ char * follow(char a, char b)
 
     if(ptr[a-65][b-48][2]->follow>=2)
         return ptr[a-65][b-48][2]->a;
-    ptr[a-65][b-48][2]->follow=3;
 
     ptr[a-65][b-48][2]->follow=3; //follow calculation in progrss. Prevents cycles
     for (i = 0; i < 26; i++) 
@@ -106,7 +108,7 @@ char * follow(char a, char b)
                             if((c[2]>=65&&c[2]<=90) && ptr[c[2]-65][c[3]-48][1]->eps==2) //rule 2 and terminal can't have eps in its first()
                                 strcat(res,follow((i+65),(j+48)));
                         }
-                        else if(pos>=2) //rule 3
+                        else //rule 3
                             strcat(res,follow((i+65),(j+48)));
                     }
                 }
@@ -114,7 +116,7 @@ char * follow(char a, char b)
             }
         }
     }
-    //ptr[a-65][b-48][2]->follow=2;
+    //ptr[a-65][b-48][2]->follow=1;
     return res;
 }
 
@@ -175,7 +177,10 @@ int main(void)
                     else
                     {
                         strcat(ptr[i][j][1]->a ,c );
-                        break;
+                        if(b[k]>=65&&b[k]<=90&&ptr[b[k]-65][b[k+1]-48][1]->eps!=2)
+                            break;
+                        else if(b[k]<65 || b[k]>90)
+                            break;
                     }
                     k+=2;
                 }
