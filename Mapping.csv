@@ -93,8 +93,8 @@ P1,program
 R3,relationalOp
 R1,remaining_list
 R2,returnStmt
-S4,SingleOrRecId_
-S3,SingleOrRecId
+S4,singleOrRecId_
+S3,singleOrRecId
 S2,stmt
 S1,stmts
 T5,recAdjust

@@ -6,8 +6,6 @@
 #include "lexerDef.h"
 
 
-#define MAX_BUFFER_SIZE 512
-
 char buffer[MAX_BUFFER_SIZE];
 unsigned long line_num = 1;
 int pos_in_buffer;
@@ -19,13 +17,13 @@ char getStream(FILE *fp){
         num_char_read = fread(buffer, sizeof(char), (size_t)MAX_BUFFER_SIZE, fp);
         pos_in_buffer = 1;
         if(num_char_read == 0)
-            return 26; // EOF will be represented by 26
+            return 3; // EOF will be represented by 3
         else
             return buffer[0];
     }
 
-    if(num_char_read == 0) // EOF will be represented by 26
-        return 26;
+    if(num_char_read == 0) // EOF will be represented by 3
+        return 3;
     else
         return buffer[pos_in_buffer++];
 
@@ -165,7 +163,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         s = 197; //done
                         break;
                     case '!':
-                        s = 126; //done
+                        s = 13; //done
                         break;
                     case '\n':
                         line_num++;
@@ -178,7 +176,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         s = 225;
                         pos_in_lexeme--;
                         break;
-                    case 26: // EOF
+                    case 3: // EOF
                         t->tokenClass = TK_EOF;
                         return;
                     default: // Unknown character found
@@ -698,7 +696,8 @@ void getNextToken(FILE *fp, tokenInfo* t){
                              * till the (possible)end of the identifier
                              * and return error
                              */
-                            while(c >= 'a' && c <= 'z') c = getStream(fp);
+                            while(c >= 'a' && c <= 'z') 
+                                c = getStream(fp);
                             pos_in_buffer--; // the last character (not [a-z] is possibly part of the next token)
                             t->tokenClass = TK_ERROR;
                             t->lexeme[21] = '\0';
@@ -900,7 +899,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         s = 0;
                         pos_in_lexeme = 0;
                         break;
-                    case 26: // eof in comment
+                    case 3: // eof in comment
                         t->tokenClass = TK_EOF;
                         return;
                     default:
@@ -1125,7 +1124,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                     case '\r':
                     case 0:
                         break;
-                    case 26:
+                    case 3:
                         t->tokenClass = TK_EOF;
                         return;
                     default: // return to start state
@@ -1144,7 +1143,7 @@ int main()
     FILE* fp;
     tokenInfo *t;
     t= (tokenInfo*) malloc(sizeof(tokenInfo));
-    fp = fopen("testcase4.txt","r");
+    fp = fopen("testcase1.txt","r");
     getNextToken(fp,t);
     printf("%llu: ",t->line_num);
     printf(" Token: %s",tokenName(t->tokenClass));

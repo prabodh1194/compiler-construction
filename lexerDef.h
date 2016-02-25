@@ -5,6 +5,7 @@
 #ifndef LEXERDEF
 #define LEXERDEF
 
+#define MAX_BUFFER_SIZE 512
 #define MAX_LEXEME_SIZE 500 // larger than the allowed limits to accomodate large error messages
 
 typedef enum {
