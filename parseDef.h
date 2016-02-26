@@ -2,6 +2,11 @@
 #define PARSEDEF
 
 #define NON_TERMINAL_OFFSET 12345
+#define gg (*g)
+#define MAX_RULES 90
+#define MAX_RULE_SIZE 8
+#define MAX_TERMINALS 57
+#define MAX_NON_TERMINALS 52
 
 typedef enum{
 	all = NON_TERMINAL_OFFSET,
@@ -50,12 +55,11 @@ typedef enum{
 	stmt,
 	stmts,
 	recAdjust,
-	Term,
-	TermPrime,
-	TypeDefinition,
-	TypeDefinitions,
-	var,
-	$
+	term,
+	termPrime,
+	typeDefinition,
+	typeDefinitions,
+	var
 }nontermid;
 
 #endif
