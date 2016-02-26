@@ -10,10 +10,12 @@ char buffer[MAX_BUFFER_SIZE];
 unsigned long line_num = 1;
 int pos_in_buffer;
 int num_char_read = -1;
+hashtable *h;
 
 char getStream(FILE *fp){
 
 	if(pos_in_buffer == MAX_BUFFER_SIZE || num_char_read == -1) {
+        bzero(buffer,MAX_BUFFER_SIZE);
         num_char_read = fread(buffer, sizeof(char), (size_t)MAX_BUFFER_SIZE, fp);
         pos_in_buffer = 1;
         if(num_char_read == 0)
@@ -32,12 +34,14 @@ char getStream(FILE *fp){
 void getNextToken(FILE *fp, tokenInfo* t){
 	char c;
     int pos_in_lexeme=0;
-	int s = 0;
-	while (1) {
+	int hash_value, s = 0;
+	row* current_pointer;
+    while (1) {
 		c = getStream(fp);
 		t->lexeme[pos_in_lexeme++] = c;
         //printf("%s\n",t->lexeme);
 		t->line_num = line_num;
+        //printf("s= %d line_num = %lu c= %c pos_in_buffer=%d\n",s,line_num,c,pos_in_buffer);
 		switch(s){
 			case 0:
 				switch(c){
@@ -229,7 +233,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
 					default: // TK_FIELDID found
                         pos_in_buffer--; // the current character is part of the next token
                         t->tokenClass = TK_FIELDID;
-                        t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                        t->lexeme[pos_in_lexeme - 1] = '\0'; 
                         return;
 				}//end switch inner for case 1  of switch_outer
 				break;
@@ -342,7 +346,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         s = 189;
                         pos_in_buffer--; // the current character is part of the next token
                         t->tokenClass = TK_FIELDID;
-                        t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                        t->lexeme[pos_in_lexeme - 1] = '\0'; 
                         return;
                 }
                 break;
@@ -382,7 +386,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         s = 189;
                         pos_in_buffer--; // the current character is part of the next token
                         t->tokenClass = TK_FIELDID;
-                        t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                        t->lexeme[pos_in_lexeme - 1] = '\0'; 
                         return;
                 }
                 break;
@@ -421,7 +425,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                     default: // TK_FIELDID found
                         pos_in_buffer--; // the current character is part of the next token
                         t->tokenClass = TK_FIELDID;
-                        t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                        t->lexeme[pos_in_lexeme - 1] = '\0'; 
                         return;
                 }
                 break;
@@ -458,7 +462,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                     default:
                         pos_in_buffer--; // the current character is part of the next token
                         t->tokenClass = TK_CALL;
-                        t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                        t->lexeme[pos_in_lexeme - 1] = '\0'; 
                         return;
                 }//end inner switch of case 42 of outer switch
                 break;
@@ -524,7 +528,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         else
                             sprintf(t->lexeme, "unexpected character: '%c' after '_'", c);
                         t->tokenClass = TK_ERROR;
-                        t->line_num = line_num; // lineNo now refers to the line after the error
+                        t->line_num = line_num; 
                         if(c == '\n')
                             line_num++;
                         return;
@@ -709,6 +713,24 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         pos_in_buffer--; // the current character is part of the next token
                         if(pos_in_lexeme > 2){
                             t->lexeme[pos_in_lexeme - 1] = '\0'; // the current character is not part of the identifier
+                            hash_value = hash_function(t->lexeme,h->size);
+                            current_pointer = &(h->table[hash_value]);
+                            if(strcmp(current_pointer->value,"null")==0){
+                                t->tokenClass = TK_FIELDID;
+                                return;
+                            }
+                            else{
+                                while(current_pointer != NULL){
+                                    if(strcmp(current_pointer->value,t->lexeme)==0){
+                                        printf("in\n");
+                                        t->tokenClass = tokenClass(current_pointer->token);
+                                        return;
+                                    }
+                                    current_pointer = current_pointer->next;
+                                }
+                            }
+                            
+                            /*
                             if(strcmp(t->lexeme, "call") == 0)
                                 t->tokenClass = TK_CALL;
                             else if(strcmp(t->lexeme, "else") == 0)
@@ -757,6 +779,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                                 t->tokenClass = TK_WRITE;
                             else
                                 t->tokenClass = TK_FIELDID; // a normal field id
+                            */
                             return;
                         }
                         else if(pos_in_lexeme == 2){
@@ -1142,6 +1165,9 @@ int main()
 {
     FILE* fp;
     tokenInfo *t;
+    hashtable* table;
+    
+    h = hash_keywords();
     t= (tokenInfo*) malloc(sizeof(tokenInfo));
     fp = fopen("testcase1.txt","r");
     getNextToken(fp,t);

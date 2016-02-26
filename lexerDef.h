@@ -1,12 +1,8 @@
-/*
- * lexerDef.h: defines the data structures and constants used by the lexer
-  */
-
 #ifndef LEXERDEF
 #define LEXERDEF
 
 #define MAX_BUFFER_SIZE 512
-#define MAX_LEXEME_SIZE 500 // larger than the allowed limits to accomodate large error messages
+#define MAX_LEXEME_SIZE 500 // larger to accomodate large error messages
 
 typedef enum {
     TK_ASSIGNOP, 
@@ -63,16 +59,29 @@ typedef enum {
     TK_GE, 
     TK_NE,
     TK_EOF,
-    eps, // eps is not a nonterminal - can be considered a terminal
+    eps, 
     TK_ERROR
 } terminalId;
 
-// the tokenInfo structure - defines a token
+// the tokenInfo structure
 typedef struct {
 
     char lexeme[MAX_LEXEME_SIZE];
     unsigned long long line_num;
     terminalId tokenClass;
 } tokenInfo;
+
+struct row{
+    char value[100];
+    char token[50];
+    struct row* next;
+};
+struct hashtable{
+    int size;
+    struct row* table;
+};
+
+typedef struct row row;
+typedef struct hashtable hashtable;
 
 #endif

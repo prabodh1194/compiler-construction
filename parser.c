@@ -21,8 +21,8 @@ void getGrammar(grammar *g)
     while(!feof(fp))
     {
         fscanf(fp,"%s",token);
-        gg[ruleLine][0]=grammar_to_enum(token);
-        gg[ruleLine][1]=0;
+        gg[ruleLine][0] = grammar_to_enum(token);
+        gg[ruleLine][1] = 0;
         rule=2;
         while(1)
         {
