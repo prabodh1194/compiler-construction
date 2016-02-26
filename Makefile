@@ -1,4 +1,4 @@
 all:clean
-	gcc ff.c -o ff -g
+	gcc lexer.c helper_functions.c ff.c parser.c -o parser -g
 clean:
-	rm -f .fuse_hidd* ff
+	rm -f .fuse_hidd* ff parser

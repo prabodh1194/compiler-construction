@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GRAMMAR_FILE "grammar.txt"
+
 struct y
 {
     char a[20];
@@ -120,11 +122,13 @@ char * follow(char a, char b)
     return res;
 }
 
-int main(void)
+void calc()
 {
     int i,l,j,k,flag=0;
     char a[524], *b, *c;
     struct y *head;
+
+    FILE *fp = fopen(GRAMMAR_FILE,"r");
 
     for(i=0;i<26;i++)
         for(j=0;j<10;j++)
@@ -136,7 +140,7 @@ int main(void)
             ptr[i][j][1]->follow=1;
         }
 
-    while((l=scanf("%s",a))!=EOF)
+    while((l=fscanf(fp,"%s",a))!=EOF)
     {
         add(&ptr[a[0]-65][a[1]-48][0],(a+3));
         if(!flag)
@@ -207,5 +211,14 @@ int main(void)
             }
         }
     }
-    return 0;
+    return;
+    fclose(fp);
 }
+
+/*
+   int main(void)
+   {
+   calc();
+   return 0;
+   }
+   */
