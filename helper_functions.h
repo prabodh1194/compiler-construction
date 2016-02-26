@@ -1,9 +1,16 @@
 
 #ifndef helper_functions
 #define helper_functions
-
-
 #include "lexerDef.h"
+
+int hash_function(char* , int );
+hashtable* create_hashtable(int );
+void fill_hashtable(hashtable* , char* , char* );
+void print_hashtable(hashtable* );
+int hash_function(char* , int );
+int check_function(int ,int );
+hashtable* hash_keywords();
+terminalId tokenClass(char* tokenName);
 
 void calc();//get first and follow sets
 int sanitizeError(char);

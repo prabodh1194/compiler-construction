@@ -1161,7 +1161,6 @@ void getNextToken(FILE *fp, tokenInfo* t){
 	} // end while
 } //end function
 
-/*
 int main()
 {
     FILE* fp;
@@ -1184,4 +1183,3 @@ int main()
         printf(" Lexeme: %s\n",t->lexeme);
     }
 }
-*/
