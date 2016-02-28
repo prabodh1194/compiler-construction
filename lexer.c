@@ -32,6 +32,7 @@ char getStream(FILE *fp){
 }
 
 void getNextToken(FILE *fp, tokenInfo* t){
+    bzero(t->lexeme, MAX_LEXEME_SIZE);
 	char c;
     int pos_in_lexeme=0;
 	int hash_value, s = 0;
@@ -722,7 +723,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                             else{
                                 while(current_pointer != NULL){
                                     if(strcmp(current_pointer->value,t->lexeme)==0){
-                                        printf("in\n");
+                                        //printf("in\n");
                                         t->tokenClass = tokenClass(current_pointer->token);
                                         return;
                                     }
@@ -1161,6 +1162,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
 	} // end while
 } //end function
 
+/*
 int main()
 {
     FILE* fp;
@@ -1183,3 +1185,4 @@ int main()
         printf(" Lexeme: %s\n",t->lexeme);
     }
 }
+*/

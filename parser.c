@@ -2,6 +2,7 @@
 #include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "lexer.h"
 #include "parseDef.h"
 #include "helper_functions.h"
 
@@ -10,6 +11,8 @@
 typedef int grammar[MAX_RULES+1][MAX_RULE_SIZE+2];
 typedef int table[MAX_NON_TERMINALS][MAX_TERMINALS];
 extern struct y *ptr[26][10][3];
+
+extern hashtable *h;
 
 char * getFirstSet(char *, char *, char *);
 char * getFollowSet(char *);
@@ -112,6 +115,70 @@ char* getFirstSet(char *lhs, char *rhs, char *set)
     return set;
 }
 
+int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *root, tokenInfo *t)
+{
+    int i,ruleNo, *rule, nochildren;
+    parseTree *tree, *node;
+    int state;
+
+    tree = NULL;
+
+    if(root->isTerminal)
+    {
+        //match the lookahead
+        if(root->term.tokenClass != t->tokenClass)
+        {
+            fprintf(stderr, "error: line %llu: %s\n", t->line_num, t->lexeme);
+            return -1;
+        }
+        else
+        {
+            //matching lookaheads, advance token
+            strcpy(root->term.lexeme,t->lexeme);
+            root->term.line_num=t->line_num;
+            getNextToken(sourceCodeFile, t);
+            return 0;
+        }
+    }
+    else
+    {
+        state = root->nonterm;
+        state-=NON_TERMINAL_OFFSET;
+
+        ruleNo = tb[state][t->tokenClass]-1; //array indexing
+        rule = g[ruleNo]; 
+        nochildren = rule[1];
+
+        root->nochildren = nochildren;
+        node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
+
+        for(i=0;i<nochildren;i++)
+        {
+            node[i].nochildren = 0;
+            node[i].children=NULL;
+            bzero(node[i].term.lexeme,MAX_LEXEME_SIZE);
+            if(rule[i+2]>=NON_TERMINAL_OFFSET)
+            {
+                node[i].isTerminal = 0;
+                node[i].nonterm = rule[i+2];
+            }
+            else
+            {
+                node[i].isTerminal = 1;
+                node[i].term.tokenClass = t->tokenClass;
+                if(rule[2]==eps)
+                {
+                    strcpy(node[i].term.lexeme,"eps");
+                    node[i].term.line_num = t->line_num;
+                    continue;
+                }
+
+            }
+            parseInputSourceCode(sourceCodeFile, tb, g, node+i, t);
+        }
+    }
+}
+
 void printParseTable(table t)
 {
     int i,j;
@@ -123,18 +190,56 @@ void printParseTable(table t)
     }
 }
 
+/*
+void printParseTree(parseTree *p, FILE *outfile)
+{
+    int nochildren = p->nochildren, i;
+    parseTree *t;
+
+    t = p->children;
+
+    for (i = 0; i < nochildren; i++) 
+    {
+        t+=i;
+        if(t->isTerminal)
+            printf("%s\t%llu\t%s\t\t%s\tyes",t->term.lexeme,t->term.line_num,enum_to_grammar(t->term.tokenClass),enum_to_grammar(p->nonterm));
+        else
+            printf("----\t----\t%s\t\t%s\tno",enum_to_grammar(t->nonterm),enum_to_grammar(p->nonterm));
+    }
+}
+*/
+
 int main(void)
 {
     int i,j;
 
+    FILE *fp = fopen("testcase1.txt","r");
+    FILE *outfile = fopen("outfile.txt","w");
+
     grammar g;
     table t;
+    parseTree *tree;
+    tokenInfo *to;
+
+    to = (tokenInfo *)malloc(sizeof(tokenInfo));
+    tree = (parseTree *)malloc(sizeof(parseTree));
+
+    tree->nonterm = program;
+    tree->isTerminal = 0;
+    tree->children = NULL;
     for(i=0;i<MAX_NON_TERMINALS;i++)
         for(j=0;j<MAX_TERMINALS;j++)
             t[i][j]=-1;
+
+    h = hash_keywords();
+
+    getNextToken(fp,to);
     calc();
     getGrammar(&g);
     createParseTable(g,&t);
     printParseTable(t);
+    parseInputSourceCode(fp,t,g,tree,to);
+    //printf("\nlexemeCurrentNode\tlineno\ttoken\tvalueIfNumber\tparentNodeSymbol\tisLeafNode\tNodeSymol");
+    //printParseTree(tree, outfile);
     return 0;
 }

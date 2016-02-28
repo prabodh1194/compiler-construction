@@ -1,16 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "helper_functions.h"
 
 #define GRAMMAR_FILE "grammar.txt"
-
-struct y
-{
-    char a[20];
-    struct y *next;
-    char eps;
-    char follow;
-};
 
 struct y *ptr[26][10][3];
 
@@ -18,6 +11,7 @@ void add(struct y **l, char *in)
 {
     struct y *node;
     node = (struct y *)malloc(sizeof(struct y));
+    bzero(node->a,200);
     strcpy(node->a,in);
     node->next==NULL;
 
@@ -67,6 +61,7 @@ char * first(char a, char b)
                         break;
                     else if(c[k]<65 || c[k]>90)
                         break;
+                    p[1]->eps=2;
                 }
                 k+=2;
             }
@@ -83,14 +78,16 @@ char * follow(char a, char b)
     int i,j;
     struct y **p, *head; char *c, *d, *res;
     d = (char *)malloc(sizeof(char)*3);
-    res = (char *)malloc(sizeof(char)*10);
+    res = (char *)malloc(sizeof(char)*1000);
+    bzero(res,1000);
     d[0]=a; d[1]=b; d[2]='\0';
 
-    if(ptr[a-65][b-48][2]->follow>=2)
+    if(ptr[a-65][b-48][2]->follow==2 || ptr[a-65][b-48][2]->cyclic==2)
         return ptr[a-65][b-48][2]->a;
 
-    ptr[a-65][b-48][2]->follow=3; //follow calculation in progrss. Prevents cycles
-    for (i = 0; i < 26; i++) 
+    ptr[a-65][b-48][2]->cyclic=2;
+
+    for (i = 0; i < 26; i++)
     {
         for (j = 0; j < 10; j++) 
         {
@@ -108,17 +105,30 @@ char * follow(char a, char b)
                         {
                             strcat(res,first(c[2],c[3])); //rule 1
                             if((c[2]>=65&&c[2]<=90) && ptr[c[2]-65][c[3]-48][1]->eps==2) //rule 2 and terminal can't have eps in its first()
-                                strcat(res,follow((i+65),(j+48)));
+                            {
+                                if(ptr[i][j][2]->cyclic==1)
+                                {
+                                    strcat(res,follow((i+65),(j+48)));
+                                    //strcat(res,ptr[i][j][2]->a);
+                                    ptr[i][j][2]->cyclic=1;
+                                }
+                            }
                         }
                         else //rule 3
-                            strcat(res,follow((i+65),(j+48)));
+                        {
+                            if(ptr[i][j][2]->cyclic==1)
+                            {
+                                strcat(res,follow((i+65),(j+48)));
+                                //strcat(res,ptr[i][j][2]->a);
+                                ptr[i][j][2]->cyclic=1;
+                            }
+                        }
                     }
                 }
                 head=head->next;
             }
         }
     }
-    //ptr[a-65][b-48][2]->follow=1;
     return res;
 }
 
@@ -137,7 +147,9 @@ void calc()
             ptr[i][j][1]=(struct y *)malloc(sizeof(struct y));
             ptr[i][j][2]=(struct y *)malloc(sizeof(struct y));
             ptr[i][j][1]->eps=1;
-            ptr[i][j][1]->follow=1;
+            ptr[i][j][2]->follow=1;
+            ptr[i][j][2]->cyclic=1;
+            bzero(ptr[i][j][2]->a,1000);
         }
 
     while((l=fscanf(fp,"%s",a))!=EOF)
@@ -185,6 +197,7 @@ void calc()
                             break;
                         else if(b[k]<65 || b[k]>90)
                             break;
+                        ptr[i][j][1]->eps = 2;
                     }
                     k+=2;
                 }
@@ -202,13 +215,15 @@ void calc()
         for (j = 0; j < 10; j++) 
         {
             p = ptr[i][j];
-            if(p[0]!=NULL)
+            if(p[0]!=NULL && p[2]->follow!=2)
             {
                 p[2]->follow=1;
                 strcat(p[2]->a,follow((i+65),(j+48)));
-                printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
                 p[2]->follow=2;
+                p[2]->cyclic=1;
             }
+            if(p[2]->follow==2)
+                printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
         }
     }
     return;
@@ -216,9 +231,9 @@ void calc()
 }
 
 /*
-   int main(void)
-   {
-   calc();
-   return 0;
-   }
-   */
+int main(void)
+{
+    calc();
+    return 0;
+}
+*/

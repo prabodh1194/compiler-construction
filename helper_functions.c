@@ -31,7 +31,7 @@ void fill_hashtable(hashtable* h, char* key1, char* key2){
 	int index;
 	index = hash_function(key1,h->size);
 	//printf("%d %s\n", index, key1);
-	if(strcmp(h->table[index].value,"")==0){
+	if(strcmp(h->table[index].value,"null")==0){
 		//printf("Success\n");
 		strcpy(h->table[index].value, key1);
 		strcpy(h->table[index].token, key2);
@@ -305,6 +305,7 @@ terminalId tokenClass(char* tokenName){
 	if (strcmp(tokenName,"TK_WITH") ==0) return TK_WITH;
 	if (strcmp(tokenName,"TK_WHILE") ==0) return TK_WHILE;
 	if (strcmp(tokenName,"TK_WRITE") ==0) return TK_WRITE;
+    if (strcmp(tokenName,"TK_LIST") ==0) return TK_LIST;
 }
 
 char * enum_to_grammar(int id)

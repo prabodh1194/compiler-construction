@@ -1,12 +1,15 @@
 #ifndef PARSEDEF
 #define PARSEDEF
 
+#include "lexer.h"
+
 #define NON_TERMINAL_OFFSET 12345
 #define gg (*g)
 #define MAX_RULES 90
 #define MAX_RULE_SIZE 8
 #define MAX_TERMINALS 57
 #define MAX_NON_TERMINALS 52
+
 
 typedef enum{
 	all = NON_TERMINAL_OFFSET,
@@ -62,4 +65,15 @@ typedef enum{
 	var
 }nontermid;
 
+struct parseTree{
+    short isTerminal;
+    union{
+        nontermid nonterm;
+        tokenInfo term;
+    };
+    struct parseTree *children;
+    int nochildren;
+};
+
+typedef struct parseTree parseTree;
 #endif

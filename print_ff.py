@@ -6,7 +6,7 @@ with open('Mapping.csv') as csvfile:
     for row in reader:
     	a[row['key']] = row['value']
 
-f = open('d','r')
+f = open('b','r')
 token = ''
 token_list={}
 for line in f:
