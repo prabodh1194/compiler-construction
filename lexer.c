@@ -781,6 +781,8 @@ void getNextToken(FILE *fp, tokenInfo* t){
                             else
                                 t->tokenClass = TK_FIELDID; // a normal field id
                             */
+
+                            t->tokenClass = TK_FIELDID; // a normal field id
                             return;
                         }
                         else if(pos_in_lexeme == 2){

@@ -151,7 +151,8 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         nochildren = rule[1];
 
         root->nochildren = nochildren;
-        node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
+        if(nochildren>0)
+            node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
 
         for(i=0;i<nochildren;i++)
         {
@@ -166,11 +167,12 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
             else
             {
                 node[i].isTerminal = 1;
-                node[i].term.tokenClass = t->tokenClass;
+                node[i].term.tokenClass = rule[i+2];
                 if(rule[2]==eps)
                 {
                     strcpy(node[i].term.lexeme,"eps");
                     node[i].term.line_num = t->line_num;
+                    node[i].term.tokenClass = eps;
                     continue;
                 }
 
@@ -214,11 +216,11 @@ void printParseTree(parseTree *p, FILE *outfile)
     }
 }
 
-int main(void)
+int main(int argc, char **args)
 {
     int i,j;
 
-    FILE *fp = fopen("testcase1.txt","r");
+    FILE *fp = fopen(args[1],"r");
     FILE *outfile = fopen("outfile.txt","w");
 
     grammar g;
