@@ -23,9 +23,10 @@ char * first(char a, char b)
 {
     struct y **p= ptr[a-65][b-48];
     struct y* head;
-    char *c, *res, *i;
+    char *c, *i;
+    int epsflag = 0;
 
-    res = (char *)malloc(2*sizeof(char));
+    char *res = (char *)malloc(2*sizeof(char));
 
     //terminals
     if(a<65 || a>90)
@@ -41,6 +42,7 @@ char * first(char a, char b)
         {
             c = head->a;
             int k=0;
+            epsflag=0;
             while(1)
             {
                 if(c[k]=='\0')
@@ -61,10 +63,12 @@ char * first(char a, char b)
                         break;
                     else if(c[k]<65 || c[k]>90)
                         break;
-                    p[1]->eps=2;
+                    epsflag+=2;
                 }
                 k+=2;
             }
+            if(epsflag==strlen(c))
+                p[1]->eps=2;
             head=head->next;
         }
         return p[1]->a;
@@ -76,9 +80,9 @@ char * first(char a, char b)
 char * follow(char a, char b)
 {
     int i,j;
-    struct y **p, *head; char *c, *d, *res;
+    struct y **p, *head; char *c, *d;
     d = (char *)malloc(sizeof(char)*3);
-    res = (char *)malloc(sizeof(char)*1000);
+    char *res = (char *)malloc(sizeof(char)*1000);
     bzero(res,1000);
     d[0]=a; d[1]=b; d[2]='\0';
 
@@ -163,6 +167,7 @@ void calc()
     }
 
     printf("\nFIRST SETS\n");
+    int epsflag = 0;
     //find first set
     for(i=0;i<26;i++)
     {
@@ -173,18 +178,18 @@ void calc()
                 continue;
             if(strlen(ptr[i][j][1]->a)!=0)
             {
-                printf("%c%c:%s\n",(i+65),(j+48),ptr[i][j][1]->a);
+                printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
                 continue;
             }
             while(head!=NULL)
             {
                 k=0;
+                epsflag=0;
                 b = head->a;
                 while(1)
                 {
                     if(b[k]=='\0')
-                        break;
-                    c=first(b[k],b[k+1]);
+                        break; c=first(b[k],b[k+1]);
                     if(c[0]=='e' && c[1]=='2') //epsilon
                     {
                         if(b[k+2]=='\0')
@@ -197,13 +202,17 @@ void calc()
                             break;
                         else if(b[k]<65 || b[k]>90)
                             break;
-                        ptr[i][j][1]->eps = 2;
+                        epsflag+=2;
                     }
                     k+=2;
                 }
+                if(epsflag==strlen(b))
+                {
+                    ptr[i][j][1]->eps=2;
+                }
                 head=head->next;
             }
-            printf("%c%c:%s\n",(i+65),(j+48),ptr[i][j][1]->a);
+            printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
         }
     }
 
@@ -218,7 +227,8 @@ void calc()
             if(p[0]!=NULL && p[2]->follow!=2)
             {
                 p[2]->follow=1;
-                strcat(p[2]->a,follow((i+65),(j+48)));
+                char *c = follow((i+65),(j+48));
+                strcat(p[2]->a,c);
                 p[2]->follow=2;
                 p[2]->cyclic=1;
             }
@@ -228,6 +238,35 @@ void calc()
     }
     return;
     fclose(fp);
+}
+
+void populate()
+{
+    FILE *fi, *foll;
+    int i,j;
+
+    char *a = (char *)malloc(sizeof(char)*40);
+
+    fi = fopen("first","r");
+    foll = fopen("foll","r");
+
+    for(i=0;i<50;i++)
+    {
+        bzero(a,40);
+        fscanf(fi,"%s",a);
+        ptr[a[0]-65][a[1]-48][1]=(struct y *)malloc(sizeof(struct y));
+        ptr[a[0]-65][a[1]-48][1]->eps=1;
+        strcpy(ptr[a[0]-65][a[1]-48][1]->a,(a+3));
+        bzero(a,30);
+        fscanf(foll,"%s",a);
+        ptr[a[0]-65][a[1]-48][2]=(struct y *)malloc(sizeof(struct y));
+        strcpy(ptr[a[0]-65][a[1]-48][2]->a,(a+3));
+    }
+    bzero(a,30);
+    fscanf(fi,"%s",a);
+    for(i=0;i<strlen(a);i+=2)
+        ptr[a[i]-65][a[i+1]-48][1]->eps=2;
+    free(a);
 }
 
 /*

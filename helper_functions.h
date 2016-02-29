@@ -12,7 +12,7 @@ int check_function(int ,int );
 hashtable * hash_keywords();
 terminalId tokenClass(char* tokenName);
 
-void calc();//get first and follow sets
+void populate();//get first and follow sets
 int sanitizeError(char);
 char *tokenName(int);
 int grammar_to_enum(char*);

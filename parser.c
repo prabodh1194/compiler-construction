@@ -55,7 +55,7 @@ void createParseTable(grammar g, table *t)
     rhspart= (char *)malloc(sizeof(char)*3);
     rulelhs = (char *)malloc(sizeof(char)*3);
     rulerhs = (char *)malloc(sizeof(char)*MAX_RULE_SIZE);
-    fi = (char *)malloc(sizeof(char)*20);
+    fi = (char *)calloc(MAX_RULE_SIZE,sizeof(char));
 
     rulelhs[2]='\0';
 
@@ -136,6 +136,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
             //matching lookaheads, advance token
             strcpy(root->term.lexeme,t->lexeme);
             root->term.line_num=t->line_num;
+            //printf("\n%s\t%llu\t%s\t\tyes",root->term.lexeme,root->term.line_num,enum_to_grammar(root->term.tokenClass));
             getNextToken(sourceCodeFile, t);
             return 0;
         }
@@ -174,6 +175,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
                 }
 
             }
+            //printf("\n----\t----\t%s\t\t%s\tno",enum_to_grammar(node[i].nonterm),enum_to_grammar(node[i].nonterm));
             parseInputSourceCode(sourceCodeFile, tb, g, node+i, t);
         }
     }
@@ -190,24 +192,27 @@ void printParseTable(table t)
     }
 }
 
-/*
 void printParseTree(parseTree *p, FILE *outfile)
 {
     int nochildren = p->nochildren, i;
     parseTree *t;
 
+    if(p->nonterm<NON_TERMINAL_OFFSET)
+        return;
+
     t = p->children;
 
-    for (i = 0; i < nochildren; i++) 
+    for (i = 0; i < nochildren; i++,t++) 
     {
-        t+=i;
         if(t->isTerminal)
-            printf("%s\t%llu\t%s\t\t%s\tyes",t->term.lexeme,t->term.line_num,enum_to_grammar(t->term.tokenClass),enum_to_grammar(p->nonterm));
+            printf("\n%s\t%llu\t%s\t\t%s\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),tokenName(p->nonterm));
         else
-            printf("----\t----\t%s\t\t%s\tno",enum_to_grammar(t->nonterm),enum_to_grammar(p->nonterm));
+        {
+            printf("\n----\t----\t%s\t\t%s\tno",tokenName(t->nonterm),tokenName(p->nonterm));
+            printParseTree(t, outfile);
+        }
     }
 }
-*/
 
 int main(void)
 {
@@ -234,12 +239,14 @@ int main(void)
     h = hash_keywords();
 
     getNextToken(fp,to);
-    calc();
+    populate();
     getGrammar(&g);
     createParseTable(g,&t);
     printParseTable(t);
     parseInputSourceCode(fp,t,g,tree,to);
-    //printf("\nlexemeCurrentNode\tlineno\ttoken\tvalueIfNumber\tparentNodeSymbol\tisLeafNode\tNodeSymol");
-    //printParseTree(tree, outfile);
+    printf("\nlexemeCurrentNode\tlineno\ttoken\tvalueIfNumber\tparentNodeSymbol\tisLeafNode\tNodeSymol");
+    printParseTree(tree, outfile);
+    fclose(fp);
+    fclose(outfile);
     return 0;
 }
