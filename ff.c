@@ -107,12 +107,22 @@ char * follow(char a, char b)
                     {
                         if(c[2]!='\0') //rules 1 & 2
                         {
-                            strcat(res,first(c[2],c[3])); //rule 1
-                            if((c[2]>=65&&c[2]<=90) && ptr[c[2]-65][c[3]-48][1]->eps==2) //rule 2 and terminal can't have eps in its first()
+                            int e=0;
+                            while(1)
+                            {
+                                if(e>=strlen(c+2))
+                                    break;
+                                strcat(res,first(c[e+2],c[e+3])); //rule 1
+                                if(c[e+2]<65 || c[e+2]>90 || ptr[c[e+2]-65][c[e+3]-48][1]->eps!=2)
+                                    break;
+                                e+=2;
+                            }
+                            if(e == strlen(c+2) && e>0 && strlen(c+2)>0) //rule 2
                             {
                                 if(ptr[i][j][2]->cyclic==1)
                                 {
-                                    strcat(res,follow((i+65),(j+48)));
+                                    if(c[0]-65!=i || c[1]-48!=j)
+                                        strcat(res,follow((i+65),(j+48)));
                                     //strcat(res,ptr[i][j][2]->a);
                                     ptr[i][j][2]->cyclic=1;
                                 }
@@ -133,6 +143,7 @@ char * follow(char a, char b)
             }
         }
     }
+    strcat(res,ptr[a-65][b-48][2]->a);
     return res;
 }
 
@@ -270,8 +281,10 @@ void populate()
     free(a);
 }
 
+/*
 int main(void)
 {
     calc();
     return 0;
 }
+*/

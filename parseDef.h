@@ -5,7 +5,7 @@
 
 #define NON_TERMINAL_OFFSET 12345
 #define gg (*g)
-#define MAX_RULES 90
+#define MAX_RULES 88
 #define MAX_RULE_SIZE 100
 #define MAX_TERMINALS 57
 #define MAX_NON_TERMINALS 52

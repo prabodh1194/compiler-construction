@@ -117,9 +117,9 @@ char* getFirstSet(char *lhs, char *rhs, char *set)
 
 int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *root, tokenInfo *t)
 {
-    int i,ruleNo, *rule, nochildren;
+    int state, i,ruleNo, *rule, nochildren;
     parseTree *tree, *node;
-    int state;
+    nontermid goTo;
 
     tree = NULL;
 
@@ -147,42 +147,69 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         state-=NON_TERMINAL_OFFSET;
 
         ruleNo = tb[state][t->tokenClass]-1; //array indexing
-        rule = g[ruleNo]; 
-        nochildren = rule[1];
 
-        root->nochildren = nochildren;
-        if(nochildren>0)
-            node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
-
-        for(i=0;i<nochildren;i++)
+        //no such rule!
+        if(ruleNo < 0)
         {
-            node[i].nochildren = 0;
-            node[i].children=NULL;
-            bzero(node[i].term.lexeme,MAX_LEXEME_SIZE);
-            if(rule[i+2]>=NON_TERMINAL_OFFSET)
+            fprintf(stderr, "error: line %llu: Found unexpected token %s for lexeme <%s>\n",t->line_num, tokenName(t->tokenClass), t->lexeme);
+            return -1;
+        }
+        //found rule
+        else
+        {
+
+            rule = g[ruleNo];
+            nochildren = rule[1];
+
+            root->nochildren = nochildren;
+            if(nochildren>0)
+                node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
+
+            for(i=0;i<nochildren;i++)
             {
-                node[i].isTerminal = 0;
-                node[i].nonterm = rule[i+2];
-            }
-            else
-            {
-                node[i].isTerminal = 1;
-                node[i].term.tokenClass = rule[i+2];
-                if(rule[2]==eps)
+                node[i].nochildren = 0;
+                node[i].children=NULL;
+                bzero(node[i].term.lexeme,MAX_LEXEME_SIZE);
+                if(rule[i+2]>=NON_TERMINAL_OFFSET)
                 {
-                    strcpy(node[i].term.lexeme,"eps");
-                    node[i].term.line_num = t->line_num;
-                    node[i].term.tokenClass = eps;
-                    continue;
+                    node[i].isTerminal = 0;
+                    node[i].nonterm = rule[i+2];
                 }
+                else
+                {
+                    node[i].isTerminal = 1;
+                    node[i].term.tokenClass = rule[i+2];
+                    if(rule[2]==eps)
+                    {
+                        strcpy(node[i].term.lexeme,"eps");
+                        node[i].term.line_num = t->line_num;
+                        node[i].term.tokenClass = eps;
+                        continue;
+                    }
 
-            }
-            //printf("\n----\t----\t%s\t\t%s\tno",enum_to_grammar(node[i].nonterm),enum_to_grammar(node[i].nonterm));
-            if(parseInputSourceCode(sourceCodeFile, tb, g, node+i, t)==-1)
-            {
-                //error due to token mismatch. Panic error recovery mode
+                }
+                //printf("\n----\t----\t%s\t\t%s\tno",enum_to_grammar(node[i].nonterm),enum_to_grammar(node[i].nonterm));
+                if(parseInputSourceCode(sourceCodeFile, tb, g, node+i, t)==-1)
+                {
+                    //error due to token mismatch. Panic error recovery mode
+                    /*If error occurs inside a block, search for the end to that
+                     * block
+                     */
+                    if(node[i].nonterm == iterativeStmt)
+                        goTo = TK_ENDWHILE;
+                    else if(node[i].nonterm == conditionalStmt)
+                        goTo = TK_ENDIF;
+                    else if(node[i].nonterm == function || node[i].nonterm == mainFunctions)
+                        goTo = TK_END;
+                    else
+                        goTo = TK_SEM;
 
-
+                    while(t->tokenClass!=goTo)
+                    {
+                        getNextToken(sourceCodeFile, t);
+                    }
+                    getNextToken(sourceCodeFile, t);
+                }
             }
         }
     }
