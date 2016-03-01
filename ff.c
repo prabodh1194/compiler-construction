@@ -26,7 +26,7 @@ char * first(char a, char b)
     char *c, *i;
     int epsflag = 0;
 
-    char *res = (char *)malloc(2*sizeof(char));
+    char *res = (char *)calloc(3,sizeof(char));
 
     //terminals
     if(a<65 || a>90)
@@ -148,11 +148,12 @@ void calc()
         for(j=0;j<10;j++)
         {
             ptr[i][j][0]=NULL;
-            ptr[i][j][1]=(struct y *)malloc(sizeof(struct y));
-            ptr[i][j][2]=(struct y *)malloc(sizeof(struct y));
+            ptr[i][j][1]=(struct y *)calloc(1,sizeof(struct y));
+            ptr[i][j][2]=(struct y *)calloc(1,sizeof(struct y));
             ptr[i][j][1]->eps=1;
             ptr[i][j][2]->follow=1;
             ptr[i][j][2]->cyclic=1;
+            bzero(ptr[i][j][1]->a,1000);
             bzero(ptr[i][j][2]->a,1000);
         }
 
@@ -269,10 +270,8 @@ void populate()
     free(a);
 }
 
-/*
 int main(void)
 {
     calc();
     return 0;
 }
-*/

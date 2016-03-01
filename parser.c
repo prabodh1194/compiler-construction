@@ -128,7 +128,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         //match the lookahead
         if(root->term.tokenClass != t->tokenClass)
         {
-            fprintf(stderr, "error: line %llu: %s\n", t->line_num, t->lexeme);
+            fprintf(stderr, "error: line %llu: The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
             return -1;
         }
         else
@@ -178,7 +178,12 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 
             }
             //printf("\n----\t----\t%s\t\t%s\tno",enum_to_grammar(node[i].nonterm),enum_to_grammar(node[i].nonterm));
-            parseInputSourceCode(sourceCodeFile, tb, g, node+i, t);
+            if(parseInputSourceCode(sourceCodeFile, tb, g, node+i, t)==-1)
+            {
+                //error due to token mismatch. Panic error recovery mode
+
+
+            }
         }
     }
 }
