@@ -120,12 +120,13 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
     int state, i,ruleNo, *rule, nochildren;
     parseTree *tree, *node;
     nontermid goTo;
+    short err = 0; //error flag
 
     tree = NULL;
 
     if(t->tokenClass == TK_ERROR)
     {
-        fprintf(stderr,"%s\n",t->lexeme);
+        fprintf(stderr,"error: line %llu: %s\n",t->line_num,t->lexeme);
         getNextToken(sourceCodeFile, t);
         return -2;
     }
@@ -202,31 +203,47 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
                     /*If error occurs inside a block, search for the end to that
                      * block
                      */
-                    char foll[20];
-                    bzero(foll,20);
-                    char tok[3];
-                    strcpy(tok,enum_to_grammar(node[i].nonterm));
-                    bzero(foll,20);
-                    strcpy(foll,ptr[tok[0]-65][tok[1]-48][2]->a);
-                    while(1)
+                    /*
+                       fprintf(stderr,"Expected tokens:  ");
+                       int j;
+                       for(j = 0; j < MAX_TERMINALS; j++)
+                       if(tb[node[i].nonterm - NON_TERMINAL_OFFSET][j]!=-1)
+                       fprintf(stderr,"%s\t",tokenName(j));
+                       fprintf(stderr,"\n");
+                       */
+                    if(node[i].nonterm == assignmentStmt || node[i].nonterm == iterativeStmt || node[i].nonterm == conditionalStmt || node[i].nonterm == ioStmt || node[i].nonterm == funCallStmt || node[i].nonterm == typeDefinition || node[i].nonterm == declaration || node[i].nonterm == returnStmt || node[i].nonterm == mainFunctions || node[i].nonterm == function)
                     {
-                        getNextToken(sourceCodeFile, t);
-                        if(t->tokenClass == TK_ERROR)
-                        {
-                            fprintf(stderr,"%s\n",t->lexeme);
-                            continue;
-                        }
-                        else if(t->tokenClass == TK_EOF)
-                            return -1;
-                        strcpy(tok,enum_to_grammar(t->tokenClass));
-                        if(strstr(foll,tok)!=NULL)
-                            break;
+                        err = -1;
+                        break;
                     }
-                    return 1;
+                    else
+                        return -1;
                 }
+            }
+            if(err==-1)
+            {
+                if(node[i].nonterm == conditionalStmt)
+                    goTo = TK_ENDIF;
+                else if(node[i].nonterm == iterativeStmt)
+                    goTo = TK_ENDWHILE;
+                else if(node[i].nonterm == function) 
+                    goTo = TK_END;
+                else
+                    goTo = TK_SEM;
+
+                while(t->tokenClass != goTo)
+                {
+                    getNextToken(sourceCodeFile, t);
+                    if(t->tokenClass == TK_ERROR)
+                        fprintf(stderr,"error: line %llu: %s\n",t->line_num,t->lexeme);
+                    else if (t->tokenClass == TK_EOF)
+                        return 1;
+                }
+                getNextToken(sourceCodeFile, t);
             }
         }
     }
+    return 1;
 }
 
 void printParseTable(table t)
