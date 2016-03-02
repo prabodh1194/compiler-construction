@@ -123,13 +123,20 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 
     tree = NULL;
 
+    if(t->tokenClass == TK_ERROR)
+    {
+        fprintf(stderr,"%s\n",t->lexeme);
+        getNextToken(sourceCodeFile, t);
+        return -2;
+    }
+
     if(root->isTerminal)
     {
         //match the lookahead
         if(root->term.tokenClass != t->tokenClass)
         {
             fprintf(stderr, "error: line %llu: The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
-            return -1;
+            return -2;
         }
         else
         {
@@ -195,20 +202,27 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
                     /*If error occurs inside a block, search for the end to that
                      * block
                      */
-                    if(node[i].nonterm == iterativeStmt)
-                        goTo = TK_ENDWHILE;
-                    else if(node[i].nonterm == conditionalStmt)
-                        goTo = TK_ENDIF;
-                    else if(node[i].nonterm == function || node[i].nonterm == mainFunctions)
-                        goTo = TK_END;
-                    else
-                        goTo = TK_SEM;
-
-                    while(t->tokenClass!=goTo)
+                    char foll[20];
+                    bzero(foll,20);
+                    char tok[3];
+                    strcpy(tok,enum_to_grammar(node[i].nonterm));
+                    bzero(foll,20);
+                    strcpy(foll,ptr[tok[0]-65][tok[1]-48][2]->a);
+                    while(1)
                     {
                         getNextToken(sourceCodeFile, t);
+                        if(t->tokenClass == TK_ERROR)
+                        {
+                            fprintf(stderr,"%s\n",t->lexeme);
+                            continue;
+                        }
+                        else if(t->tokenClass == TK_EOF)
+                            return -1;
+                        strcpy(tok,enum_to_grammar(t->tokenClass));
+                        if(strstr(foll,tok)!=NULL)
+                            break;
                     }
-                    getNextToken(sourceCodeFile, t);
+                    return 1;
                 }
             }
         }
@@ -239,10 +253,10 @@ void printParseTree(parseTree *p, FILE *outfile)
     for (i = 0; i < nochildren; i++,t++) 
     {
         if(t->isTerminal)
-            printf("\n%s\t%llu\t%s\t\t%s\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),tokenName(p->nonterm));
+            printf("\n%17s%12llu\t%15s\t\t\t\t\t%20s\t\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),tokenName(p->nonterm));
         else
         {
-            printf("\n----\t----\t%s\t\t%s\tno",tokenName(t->nonterm),tokenName(p->nonterm));
+            printf("\n             ----\t ----\t%34s\t\t%20s\t\t no",tokenName(t->nonterm),tokenName(p->nonterm));
             printParseTree(t, outfile);
         }
     }
@@ -278,7 +292,7 @@ int main(int argc, char **args)
     createParseTable(g,&t);
     printParseTable(t);
     parseInputSourceCode(fp,t,g,tree,to);
-    printf("\nlexemeCurrentNode\tlineno\ttoken\tvalueIfNumber\tparentNodeSymbol\tisLeafNode\tNodeSymol");
+    printf("\nlexemeCurrentNode\tlineno\t\ttoken\t\tNodeSymbol\t\t    parentNodeSymbol\t isLeafNode\tvalueIfNumber");
     printParseTree(tree, outfile);
     fclose(fp);
     fclose(outfile);
