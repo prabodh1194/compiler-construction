@@ -196,6 +196,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         break;
                     case 3: // EOF
                         t->tokenClass = TK_EOF;
+                        strcpy(t->lexeme,"EOF");
                         return;
                     default: // Unknown character found
                         t->tokenClass = TK_ERROR;
@@ -770,6 +771,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         break;
                     case 3: // eof in comment
                         t->tokenClass = TK_EOF;
+                        strcpy(t->lexeme,"EOF");
                         return;
                     default:
                         ;
@@ -1013,6 +1015,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         break;
                     case 3:
                         t->tokenClass = TK_EOF;
+                        strcpy(t->lexeme,"EOF");
                         return;
                     default: // return to start state
                         pos_in_buffer--;
@@ -1026,7 +1029,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
 	} // end while
 } //end function
 
-/*
+
 int main()
 {
     FILE* fp;
@@ -1051,4 +1054,4 @@ int main()
         printf(" Lexeme: %s\n",t->lexeme);
     }
 }
-*/
+
