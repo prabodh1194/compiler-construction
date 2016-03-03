@@ -311,6 +311,7 @@ int main(int argc, char **args)
     parseInputSourceCode(fp,t,g,tree,to);
     printf("\nlexemeCurrentNode\tlineno\t\ttoken\t\tNodeSymbol\t\t    parentNodeSymbol\t isLeafNode\tvalueIfNumber");
     printParseTree(tree, outfile);
+    printf("\n");
     fclose(fp);
     fclose(outfile);
     return 0;
