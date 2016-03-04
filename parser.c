@@ -1,3 +1,23 @@
+/*
+BATCH NUMBER: 23
+PRABODH AGARWAL 2012B1A7801P
+DEEPANSHU SINGH 2012B3A7593P
+
+parser.c:
+
+void getGrammar(grammar *g);
+void createParseTable(grammar g, table *t);
+char* getFirstSet(char *lhs, char *rhs, char *set);
+int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *root, tokenInfo *t);
+void printParseTree(parseTree *p, FILE *outfile);
+void printParseTable(table t);
+char * getFirstSet(char *, char *, char *);
+char * getFollowSet(char *);
+
+
+*/
+
+
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>

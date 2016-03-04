@@ -1,14 +1,22 @@
+/*
+BATCH NUMBER: 23
+PRABODH AGARWAL 2012B1A7801P
+DEEPANSHU SINGH 2012B3A7593P
+
+parseDef.h: defines the variables and data structures used in parser.c
+*/
+
 #ifndef PARSEDEF
 #define PARSEDEF
 
 #include "lexer.h"
 
-#define NON_TERMINAL_OFFSET 12345
+#define NON_TERMINAL_OFFSET 12345 // Offset for Non-Terminal's enum. Terminal Enum starts from 0.
 #define gg (*g)
-#define MAX_RULES 88
-#define MAX_RULE_SIZE 100
-#define MAX_TERMINALS 57
-#define MAX_NON_TERMINALS 52
+#define MAX_RULES 88 // Number of rules in Grammar
+#define MAX_RULE_SIZE 100 // Maximum size of a rule
+#define MAX_TERMINALS 57 // Number of Terminals in a grammar
+#define MAX_NON_TERMINALS 52 // Number of Non-Terminals in a grammar
 
 
 typedef enum{
@@ -65,14 +73,15 @@ typedef enum{
     var
 }nontermid;
 
+//Data Structure to store Parse Tree
 struct parseTree{
-    short isTerminal;
-    union {
+    union { //union used because a node can either be a non terminal or a terminal not both
     nontermid nonterm;
     tokenInfo term;
     };
-    struct parseTree *children;
-    int nochildren;
+    short isTerminal; // whether the node is a terminal or not
+    struct parseTree *children; // to store pointers to the children of the node
+    int nochildren; // number of children of a node
 };
 
 typedef struct parseTree parseTree;

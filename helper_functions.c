@@ -1,6 +1,23 @@
 /*
- * helper_functions.c: defines various utility functions as declared in utils.h
- */
+BATCH NUMBER: 23
+PRABODH AGARWAL 2012B1A7801P
+DEEPANSHU SINGH 2012B3A7593P
+
+
+helper_functions.c: contains definintions of helper functions used in lexer and parser
+
+Descriptions of the following functions given before their definition in this file:
+hashtable* create_hashtable(int size)
+void fill_hashtable(hashtable* h, char* key1, char* key2)
+void print_hashtable(hashtable* h)
+int hash_function(char* key, int size)
+hashtable* hash_keywords()
+int sanitizeError(char c)
+char *tokenName(int id) 
+int grammar_to_enum(char* id)
+terminalId tokenClass(char* tokenName)
+char * enum_to_grammar(int id)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +25,11 @@
 #include "lexerDef.h"
 #include "parseDef.h"
 
+
+//Hash Function Prototype
 int hash_function(char* key, int size);
 
+//Creates the Hash Table of a given size
 hashtable* create_hashtable(int size){
 	hashtable* h = NULL;
 	int i=0;
@@ -27,17 +47,15 @@ hashtable* create_hashtable(int size){
 	return h;
 }
 
+//Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
 void fill_hashtable(hashtable* h, char* key1, char* key2){
 	int index;
 	index = hash_function(key1,h->size);
-	//printf("%d %s\n", index, key1);
 	if(strcmp(h->table[index].value,"null")==0){
-		//printf("Success\n");
 		strcpy(h->table[index].value, key1);
 		strcpy(h->table[index].token, key2);
 	}
 	else{
-		//printf("In else");
 		row *new_entry,*collision;
 		new_entry = (row*) malloc(sizeof(row));
 		strcpy(new_entry->value,key1);
@@ -47,11 +65,10 @@ void fill_hashtable(hashtable* h, char* key1, char* key2){
 		while(collision->next != NULL)
 			collision = collision->next;
 		collision->next = new_entry;
-		//h->table[index].next = new_entry;
-		
 	}
 }
 
+//Used to print the Hash Table
 void print_hashtable(hashtable* h){
 	int i=0;
 	row* current_pointer;
@@ -65,25 +82,16 @@ void print_hashtable(hashtable* h){
 		}
 	}
 }
+
+//Hash Function to hash the key
 int hash_function(char* key, int size){
 	int i=0,sum=0;
 	while(key[i]!='\0')
 		sum += (int)key[i++]-97;
 	return sum%size;
 }
-int check_function(int key[],int size){
-	int sum, i=0;
-	char input[100];
-	FILE* fp;
-	fp = fopen("keyword.txt","r");
-	while(!feof(fp)){
-		fscanf(fp,"%s",input);
-		sum = hash_function(input,size);
-		key[i++]=sum;
-		printf("%s %d\n",input,key[i-1]);
-	}
-}
 
+//Main function which creates, populates and optionally prints the Hash Table (remove the // before print_hashtable(h) to print it)
 hashtable* hash_keywords(){
 	hashtable *h1;
 	char input1[100];
@@ -99,17 +107,15 @@ hashtable* hash_keywords(){
 	return h1;
 }
 
-
+//Used to indicate characters which are not displayed on console line newline, eof etc.
 int sanitizeError(char c) {
-    /* returns true for characters which aren't easily displayed line newline, eof etc.
-     * used when generating error messages
-     */
     if(c == '\n' || c == '\r' || c == ' ' || c == '\v' || c == '\f' || c == '\t' || c == 26) // 26 is eof
         return 1;
     else
         return 0;
 }
 
+//enum to string conversion
 char *tokenName(int id) 
 {
     // connverts enum to string
@@ -223,6 +229,7 @@ char *tokenName(int id)
     return "";
 }
 
+//Conversion of symbols used in our grammar.txt to enum
 int grammar_to_enum(char* id)
 {
     if(strcmp(id, "a1") == 0) return TK_ASSIGNOP;
@@ -333,6 +340,7 @@ int grammar_to_enum(char* id)
     return -1;
 }
 
+//Conversion of Keywords to their enum
 terminalId tokenClass(char* tokenName){
 	if (strcmp(tokenName,"TK_CALL") ==0) return TK_CALL;
 	if (strcmp(tokenName,"TK_ELSE") ==0) return TK_ELSE;
@@ -359,6 +367,7 @@ terminalId tokenClass(char* tokenName){
     if (strcmp(tokenName,"TK_LIST") ==0) return TK_LIST;
 }
 
+//Conversion of tokens to our symbols used in grammar.txt
 char * enum_to_grammar(int id)
 {
     if(id == TK_ASSIGNOP) return "a1\0";
