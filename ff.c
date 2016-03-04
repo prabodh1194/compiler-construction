@@ -6,6 +6,7 @@
 #define GRAMMAR_FILE "grammar.txt"
 
 struct y *ptr[26][10][3];
+void printff();
 
 void add(struct y **l, char *in)
 {
@@ -279,6 +280,50 @@ void populate()
     for(i=0;i<strlen(a);i+=2)
         ptr[a[i]-65][a[i+1]-48][1]->eps=2;
     free(a);
+}
+
+void printff(int in)
+{
+    int i,j;
+    char a[3],*s,set[7];
+
+    a[2]='\0';
+    if(in == 1)
+    {
+        printf("FIRST SET\n");
+        strcpy(set,"FIRST");
+    }
+    else
+    {
+        printf("FOLLOW SET\n");
+        strcpy(set,"FOLLOW");
+    }
+
+    for(i = 0; i < 26; i++)
+    {
+        for(j = 0; j < 10; j++)
+        {
+            if(ptr[i][j][in]==NULL)
+                continue;
+            printf("\n");
+            a[0]=(char)(i+65);
+            a[1]=(char)(j+48);
+            printf("%s(%s): {",set,tokenName(grammar_to_enum(a)));
+            s = ptr[i][j][in]->a;
+            for(;s[0]!='\0';s+=2)
+            {
+                a[0]=s[0];
+                a[1]=s[1];
+                printf("%s, ",tokenName(grammar_to_enum(a)));
+            }
+            if(ptr[i][j][in]->eps==2 && in==1)
+                printf("eps");
+            else
+                printf("\b\b");
+            printf("}");
+        }
+    }
+    printf("\n");
 }
 
 /*

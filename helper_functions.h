@@ -17,6 +17,7 @@ int sanitizeError(char);
 char *tokenName(int);
 int grammar_to_enum(char*);
 char * enum_to_grammar(int);
+void printff(int);
 
 struct y
 {

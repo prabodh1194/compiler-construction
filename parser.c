@@ -5,17 +5,7 @@
 #include "lexer.h"
 #include "parseDef.h"
 #include "helper_functions.h"
-
-#define tt (*t)
-
-typedef int grammar[MAX_RULES+1][MAX_RULE_SIZE+2];
-typedef int table[MAX_NON_TERMINALS][MAX_TERMINALS];
-extern struct y *ptr[26][10][3];
-
-extern hashtable *h;
-
-char * getFirstSet(char *, char *, char *);
-char * getFollowSet(char *);
+#include "parser.h"
 
 void getGrammar(grammar *g)
 {
@@ -126,7 +116,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 
     if(t->tokenClass == TK_ERROR)
     {
-        fprintf(stderr,"error: line %llu: %s\n",t->line_num,t->lexeme);
+        fprintf(stderr,"error: line %llu:%llu %s\n",t->line_num,t->col,t->lexeme);
         getNextToken(sourceCodeFile, t);
         return -2;
     }
@@ -136,7 +126,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         //match the lookahead
         if(root->term.tokenClass != t->tokenClass)
         {
-            fprintf(stderr, "error: line %llu: The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
+            fprintf(stderr, "error: line %llu:%llu The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, t->col, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
             return -2;
         }
         else
@@ -159,7 +149,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         //no such rule!
         if(ruleNo < 0)
         {
-            fprintf(stderr, "error: line %llu: Found unexpected token %s for lexeme <%s>\n",t->line_num, tokenName(t->tokenClass), t->lexeme);
+            fprintf(stderr, "error: line %llu:%llu Found unexpected token %s for lexeme <%s>\n",t->line_num, t->col, tokenName(t->tokenClass), t->lexeme);
             return -1;
         }
         //found rule
@@ -270,15 +260,16 @@ void printParseTree(parseTree *p, FILE *outfile)
     for (i = 0; i < nochildren; i++,t++) 
     {
         if(t->isTerminal)
-            printf("\n%17s%12llu\t%15s\t\t\t\t\t%20s\t\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),tokenName(p->nonterm));
+            fprintf(outfile,"\n%17s%12llu\t%15s\t\t\t\t\t%20s\t\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),tokenName(p->nonterm));
         else
         {
-            printf("\n             ----\t ----\t%34s\t\t%20s\t\t no",tokenName(t->nonterm),tokenName(p->nonterm));
+            fprintf(outfile,"\n             ----\t ----\t%34s\t\t%20s\t\t no",tokenName(t->nonterm),tokenName(p->nonterm));
             printParseTree(t, outfile);
         }
     }
 }
 
+/*
 int main(int argc, char **args)
 {
     int i,j;
@@ -316,3 +307,4 @@ int main(int argc, char **args)
     fclose(outfile);
     return 0;
 }
+*/

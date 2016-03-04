@@ -1029,29 +1029,67 @@ void getNextToken(FILE *fp, tokenInfo* t){
 	} // end while
 } //end function
 
-
-int main()
+void printTok(char *file)
 {
     FILE* fp;
     tokenInfo *t;
-    hashtable* table;
     
-    h = hash_keywords();
     t= (tokenInfo*) malloc(sizeof(tokenInfo));
-    fp = fopen("testcase1.txt","r");
+    fp = fopen(file,"r");
     getNextToken(fp,t);
-    printf("%4llu: ",t->line_num);
-    printf("%3llu: ",t->col);
-    printf(" Token: %15s",tokenName(t->tokenClass));
-    printf(" Lexeme: %s\n",t->lexeme);
+    printf("Line  Col\t\tToken\tLexeme\n");
+    printf("%4llu:",t->line_num);
+    printf("%3llu ",t->col);
+    printf("%15s\t",tokenName(t->tokenClass));
+    printf("%15s\n",t->lexeme);
 
-    while(t->tokenClass != TK_EOF){
-        t= (tokenInfo*) malloc(sizeof(tokenInfo));
+    while(t->tokenClass != TK_EOF)
+    {
+        bzero(t,sizeof(tokenInfo));
         getNextToken(fp,t);
-        printf("%4llu: ",t->line_num);
-        printf("%3llu: ",t->col);
-        printf(" Token: %15s",tokenName(t->tokenClass));
-        printf(" Lexeme: %s\n",t->lexeme);
+        printf("%4llu:",t->line_num);
+        printf("%3llu",t->col);
+        printf("%15s\t",tokenName(t->tokenClass));
+        printf("%15s\n",t->lexeme);
     }
+    line_num =1;
+    col =1;
+    pos_in_buffer;
+    num_char_read = -1;
+
+    fclose(fp);
+    free(t);
 }
 
+void printCode(char *file)
+{
+    FILE* fp;
+    tokenInfo *t;
+    int l;
+    
+    t= (tokenInfo*) malloc(sizeof(tokenInfo));
+    fp = fopen(file,"r");
+
+    getNextToken(fp,t);
+    l = t->line_num;
+
+    while(t->tokenClass != TK_EOF)
+    {
+        printf("%s ",t->lexeme);
+        bzero(t,sizeof(tokenInfo));
+        getNextToken(fp,t);
+        if(t->line_num!=l)
+        {
+            printf("\n");
+            l = t->line_num;
+        }
+    }
+    line_num =1;
+    col =1;
+    pos_in_buffer;
+    num_char_read = -1;
+
+
+    fclose(fp);
+    free(t);
+}
