@@ -21,22 +21,27 @@ int main(int argc, char **args)
     FILE *fp = fopen(args[1],"r");
     FILE *outfile = fopen(args[2],"w");
 
-    grammar g;
-    table t;
-    parseTree *tree;
-    tokenInfo *to;
+    grammar g; //data structure to store grammar as a double dimensional array of respective enums
+    table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
+    parseTree *tree; //parsetree datastructure--this is the root of the tree
+    tokenInfo *to; //get token from the code file in getNextToken()
 
-    to = (tokenInfo *)malloc(sizeof(tokenInfo));
+    to = (tokenInfo *)malloc(sizeof(tokenInfo)); //stores tokens from the code
     tree = (parseTree *)malloc(sizeof(parseTree));
 
+    //init parsetable to default as no rules available
     for(i=0;i<MAX_NON_TERMINALS;i++)
         for(j=0;j<MAX_TERMINALS;j++)
             t[i][j]=-1;
 
+    //make lookup table of keywords for the lexer
     h = hash_keywords();
 
+    //get first and follow sets
     populate();
+    //read grammar file and populate data structure
     getGrammar(&g);
+    //makr the parsetable
     createParseTable(g,&t);
 
     do
@@ -54,6 +59,7 @@ int main(int argc, char **args)
                 printTok(args[1]);
                 break;
             case 3:
+                //parse tree shall be created only once
                 if(!flag)
                 {
                     getNextToken(fp,to);
@@ -68,6 +74,7 @@ int main(int argc, char **args)
                     printf("Restart driver\n");
                 break;
             case 4:
+                //can't print parsetree before making one
                 if(!flag)
                 {
                     printf("Please use option 3 before doing this\n");
@@ -79,7 +86,9 @@ int main(int argc, char **args)
                 fclose(outfile);
                 break;
             case 5:
+                //print first set
                 printff(1);
+                //print follow sets
                 printff(2);
                 break;
             default:

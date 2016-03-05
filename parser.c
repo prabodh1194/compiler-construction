@@ -27,6 +27,16 @@ char * getFollowSet(char *);
 #include "helper_functions.h"
 #include "parser.h"
 
+/*
+* read the grammar file and populate the data structure with respective enum
+* values. 1st entry of row is the lhs of rule, 2nd entry is a count entry of number of elements
+* on the rhs, 3rd entry onwards, the rhs of the grammar is stored. The values
+* are stored as respective enums that can be obtained from lexerdef.h for
+* terminals and parsrdef for non-terminals.
+* The grammar.txt file stores rules in a form of 2 characters per rule, e.g. --
+* <assignmentStmt> = a1
+* <arithmetixExpression> = a2 and so on, hence read as 2 characters at once
+*/
 void getGrammar(grammar *g)
 {
     FILE *fp;
@@ -41,6 +51,7 @@ void getGrammar(grammar *g)
         fscanf(fp,"%s",token); //LHS
         tok[0]=token[0];
         tok[1]=token[1];
+        //retrieve enum value for given LHS token
         gg[ruleLine][0]=grammar_to_enum(tok);
         gg[ruleLine][1]=0;
         rule=2;
@@ -50,6 +61,7 @@ void getGrammar(grammar *g)
         {
             tok[0]=token[i];
             tok[1]=token[i+1];
+            //retrieve enum value for given RHS token
             gg[ruleLine][rule++]=grammar_to_enum(tok);
         }
         gg[ruleLine++][1]=rule-2;//count of elements on RHS
@@ -57,6 +69,11 @@ void getGrammar(grammar *g)
     fclose(fp);
 }
 
+/*
+ * Read the grammar and populate parse table. Given table entry, e.g.:
+ * table[enum of some nonterminal][enum of some terminal] = valid rule number in
+ * grammar g data struture or -1 in case no rule exists
+ */
 void createParseTable(grammar g, table *t)
 {
     int i,j,grammarEnum;
@@ -69,6 +86,7 @@ void createParseTable(grammar g, table *t)
 
     rulelhs[2]='\0';
 
+    //i indexes to rules in order as given in grammar.txt
     for(i=0;i<MAX_RULES;i++)
     {
         bzero(rulerhs,MAX_RULE_SIZE);
@@ -77,6 +95,7 @@ void createParseTable(grammar g, table *t)
         strcat(rulelhs,enum_to_grammar(g[i][0]));
         for(j=0;j<g[i][1];j++)
             strcat(rulerhs,enum_to_grammar(g[i][j+2]));
+        //for rule A->x; for all t belonging to FIRST(x), table[A,t] = rule.
         getFirstSet(rulelhs,rulerhs,fi);
 
         if(fi!=NULL)
@@ -87,6 +106,7 @@ void createParseTable(grammar g, table *t)
                 rhspart[1]=fi[j+1];
                 grammarEnum = grammar_to_enum(rhspart);            
                 grammarEnum-=grammarEnum>=NON_TERMINAL_OFFSET?NON_TERMINAL_OFFSET:0;
+                //tt is a macro
                 tt[g[i][0]-NON_TERMINAL_OFFSET][grammarEnum]=i+1;
             }
         }
@@ -125,6 +145,9 @@ char* getFirstSet(char *lhs, char *rhs, char *set)
     return set;
 }
 
+/*
+ * Make a parse tree
+ */
 int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *root, tokenInfo *t)
 {
     int state, i,ruleNo, *rule, nochildren;
