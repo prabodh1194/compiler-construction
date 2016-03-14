@@ -2,9 +2,12 @@
 BATCH NUMBER: 23
 PRABODH AGARWAL 2012B1A7801P
 DEEPANSHU SINGH 2012B3A7593P
-
-
 */
+/*
+ * To see the working ff.c, uncomment the main() function and use make ff
+ * and then ./ff to run the first and follow sets. Comment out main() to
+ * recompile the driver
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +19,7 @@ DEEPANSHU SINGH 2012B3A7593P
 struct y *ptr[26][10][3];
 void printff();
 
+//collect input
 void add(struct y **l, char *in)
 {
     struct y *node;
@@ -28,6 +32,7 @@ void add(struct y **l, char *in)
     *l = node;
 }
 
+//calculate first set
 char * first(char a, char b)
 {
     struct y **p= ptr[a-65][b-48];
@@ -86,6 +91,7 @@ char * first(char a, char b)
         return p[1]->a;
 }
 
+//calculate follow set
 char * follow(char a, char b)
 {
     int i,j;
@@ -156,6 +162,7 @@ char * follow(char a, char b)
     return res;
 }
 
+//driver function to calculate first and follow set
 void calc()
 {
     int i,l,j,k,flag=0;
@@ -187,7 +194,7 @@ void calc()
         }
     }
 
-    printf("\nFIRST SETS\n");
+    //printf("\nFIRST SETS\n");
     int epsflag = 0;
     //find first set
     for(i=0;i<26;i++)
@@ -199,7 +206,7 @@ void calc()
                 continue;
             if(strlen(ptr[i][j][1]->a)!=0)
             {
-                printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
+                //printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
                 continue;
             }
             while(head!=NULL)
@@ -233,11 +240,11 @@ void calc()
                 }
                 head=head->next;
             }
-            printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
+            //printf("%c%c:%s\t%d\n",(i+65),(j+48),ptr[i][j][1]->a,ptr[i][j][1]->eps);
         }
     }
 
-    printf("\nFOLLOW SETS\n");
+    //printf("\nFOLLOW SETS\n");
     struct y **p;
     //find follow set
     for (i = 0; i < 26; i++) 
@@ -253,10 +260,12 @@ void calc()
                 p[2]->follow=2;
                 p[2]->cyclic=1;
             }
-            if(p[2]->follow==2)
-                printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
+            if(p[2]->follow==2);
+                //printf("%c%c:%s\n",(i+65),(j+48),p[2]->a);
         }
     }
+    printff(1);
+    printff(2);
     return;
     fclose(fp);
 }
