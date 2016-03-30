@@ -17,7 +17,6 @@ int hash_function(char* , int );
 int check_function(int ,int );
 hashtable * hash_keywords();
 terminalId tokenClass(char* tokenName);
-int isUseful(int);
 
 void populate();//get first and follow sets
 int sanitizeError(char);

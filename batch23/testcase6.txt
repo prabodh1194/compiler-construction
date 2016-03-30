@@ -1,0 +1,12 @@
+_main 
+	type int  b5;
+	type int : d5cb34567;
+	type int :  b3b444 : global;
+	type $real: c3;
+	b5 <-- 1;
+	read(d5cb34567);
+	read(45);
+	read(b3b444);
+
+	write(c3);
+	return;
