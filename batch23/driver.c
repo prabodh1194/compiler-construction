@@ -13,6 +13,9 @@
 #include "parserDef.h"
 #include "helper_functions.h"
 #include "parser.h"
+#include "symboltableDef.h"
+#include "symboltable.h"
+#include "populateHashTable.h"
 
 extern short compilation; //compilation flag
 int main(int argc, char **args)
@@ -35,6 +38,9 @@ int main(int argc, char **args)
 
     to = (tokenInfo *)malloc(sizeof(tokenInfo)); //stores tokens from the code
     tree = (parseTree *)malloc(sizeof(parseTree));
+    ast = (parseTree *)malloc(sizeof(parseTree));
+
+    function_hashtable *funcs = create_function_hashtable(31);
 
     //init parsetable to default as no rules available
     for(i=0;i<MAX_NON_TERMINALS;i++)
@@ -70,9 +76,9 @@ int main(int argc, char **args)
                 if(!flag)
                 {
                     getNextToken(fp,to);
-                    tree->nonterm = program;
-                    tree->isTerminal = 0;
-                    tree->children = NULL;
+                    ast->nonterm = tree->nonterm = program;
+                    ast->isTerminal = tree->isTerminal = 0;
+                    ast->children = tree->children = NULL;
                     parseInputSourceCode(fp,t,g,tree,to);
                     flag=1;
                     fclose(fp);
@@ -103,6 +109,11 @@ int main(int argc, char **args)
                 break;
             case 6:
                 createAbstractSyntaxTree(tree, ast);
+                break;
+            case 7:
+                populateFunctionST(ast,funcs,NULL,-1);
+                print_function_hashtable(funcs);
+                break;
             case 8:
                 break;
             default:
@@ -110,7 +121,7 @@ int main(int argc, char **args)
                 break;
         }
     }
-    while(choice!=6);
+    while(choice!=8);
 
     return 0;
 }

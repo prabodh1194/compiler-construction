@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "lexerDef.h"
+#include "parserDef.h"
 #include "symboltableDef.h"
+#include "helper_functions.h"
 #include "symboltable.h"
 
 function_hashtable* create_function_hashtable(int size){
@@ -10,9 +13,9 @@ function_hashtable* create_function_hashtable(int size){
 	if((h = (function_hashtable*) malloc(sizeof(function_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (function_node*) malloc(sizeof(function_node) * size)) == NULL)
+	if((h->table = (function_node **) malloc(sizeof(function_node *) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(function_node)*size);
+	bzero(h->table, sizeof(function_node *)*size);
 	h->size = size;
 	return h;
 }
@@ -23,7 +26,7 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	if((h = (identifier_hashtable*) malloc(sizeof(identifier_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (identifer_list*) malloc(sizeof(identifier_list) * size)) == NULL)
+	if((h->table = (identifier_list *) malloc(sizeof(identifier_list) * size)) == NULL)
 		return NULL;
 	bzero(h->table, sizeof(identifier_list)*size);
 	h->size = size;
@@ -56,23 +59,26 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 	int index;
 	index = hash_function(fname,h->size);
 	if(h->table[index] == NULL){ //check this condition
-		strcpy(h->table[index]->fname, fname);
-		if(flag == INPUT_PAR)
+        h->table[index] = (function_node *)malloc(sizeof(function_node));
+        bzero(h->table[index],sizeof(function_node));
+		h->table[index]->fname = fname;
+		if(flag == input_par)
 			h->table[index]->input_parameter_list = ip_list; 
-		else if(flag == OUTPUT_PAR)
+		else if(flag == output_par)
 			h->table[index]->output_parameter_list = ip_list;
 	}
 	else{
 		function_node *new_entry, *temp;
 		new_entry = (function_node*) malloc(sizeof(function_node));
-		strcpy(new_entry->fname,fname);
+        bzero(new_entry, sizeof(function_node));
+		new_entry->fname=fname;
 		if (flag == TK_FUNID){
 			new_entry->next = h->table[index];
 			h->table[index] = new_entry;
 		}
-		else if (flag == INPUT_PAR){
+		else if (flag == input_par){
 			temp = h->table[index];
-			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+			while(temp!=NULL && strcmp(temp->fname,fname)!=0)
 				temp = temp->next;
 			if(temp == NULL)
 				printf("Wrong function name specified as parameter");
@@ -82,9 +88,9 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 			}
 
 		}
-		else if(flag == OUTPUT_PAR){
+		else if(flag == output_par){
 			temp = h->table[index];
-			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+			while(temp!= NULL && strcmp(temp->fname,fname)!=0)
 				temp = temp->next;
 			if(temp == NULL)
 				printf("Wrong function name specified as parameter");
@@ -98,22 +104,22 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 
 void search_function_hashtable(function_hashtable* h, char *fname){
 	int index;
-	function_hashtable *pos;
+	function_node *pos;
 	index = hash_function(fname, h->size);
 	pos = h->table[index];
 	while(pos!=NULL){
 		if(strcmp(fname,pos->fname) == 0)
-			return 1;
+			return;
 		pos = pos->next;
 	}
-	return 0;	
+	return;	
 
 }
 
 //Used to print the Hash Table
 void print_function_hashtable(function_hashtable* h){
 	int i=0;
-	function_hashtable* current_pointer;
+	function_node* current_pointer;
 	identifier_list* current_id;
 	//printf("%d\n", h->size);
 	for (i=0;i<h->size;i++){
@@ -127,7 +133,7 @@ void print_function_hashtable(function_hashtable* h){
 				printf("%s %s ", current_id->name, current_id->type);
 				current_id = current_id->next;
 			}
-			printf("\nOutput Parameters: ")
+			printf("\nOutput Parameters: ");
 			current_id = current_pointer->output_parameter_list;
 			while(current_id != NULL){
 				printf("%s %s ", current_id->name, current_id->type);
