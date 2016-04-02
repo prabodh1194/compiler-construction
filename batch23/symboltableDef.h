@@ -17,14 +17,14 @@ struct function_node{
 //Data structure for Function Hash Table
 struct function_hashtable{
     int size;
-    struct function_node* table;
+    struct function_node** table;
 };
 
 typedef struct function_node function_node;
 typedef struct function_hashtable function_hashtable;
 
 //Data structure for storing Identifiers
-struct identifier_hashtbale{
+struct identifier_hashtable{
 	int size;
 	struct identifier_list* table;
 };
