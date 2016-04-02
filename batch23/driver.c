@@ -41,6 +41,7 @@ int main(int argc, char **args)
     ast = (parseTree *)malloc(sizeof(parseTree));
 
     function_hashtable *funcs = create_function_hashtable(31);
+    function_local_identifier_hashtable *local = create_function_local_identifier_hashtable(31);
 
     //init parsetable to default as no rules available
     for(i=0;i<MAX_NON_TERMINALS;i++)
@@ -111,7 +112,7 @@ int main(int argc, char **args)
                 createAbstractSyntaxTree(tree, ast);
                 break;
             case 7:
-                populateFunctionST(ast,funcs,NULL,-1);
+                populateFunctionST(ast,funcs, local,NULL,-1);
                 print_function_hashtable(funcs);
                 break;
             case 8:
