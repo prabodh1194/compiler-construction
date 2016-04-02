@@ -3,6 +3,7 @@
 #include <string.h>
 #include "symboltableDef.h"
 #include "symboltable.h"
+#include "helper_functions.h"
 
 function_hashtable* create_function_hashtable(int size){
 	function_hashtable* h = NULL;
@@ -10,9 +11,9 @@ function_hashtable* create_function_hashtable(int size){
 	if((h = (function_hashtable*) malloc(sizeof(function_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (function_node*) malloc(sizeof(function_node) * size)) == NULL)
+	if((h->table = (function_node**) malloc(sizeof(function_node*) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(function_node)*size);
+	bzero(h->table, sizeof(function_node*)*size);
 	h->size = size;
 	return h;
 }
@@ -23,9 +24,9 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	if((h = (identifier_hashtable*) malloc(sizeof(identifier_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (identifer_list*) malloc(sizeof(identifier_list) * size)) == NULL)
+	if((h->table = (identifier_list**) malloc(sizeof(identifier_list*) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(identifier_list)*size);
+	bzero(h->table, sizeof(identifier_list*)*size);
 	h->size = size;
 	return h;
 }
@@ -57,7 +58,7 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 	index = hash_function(fname,h->size);
 	if(h->table[index] == NULL){ //check this condition
 		strcpy(h->table[index]->fname, fname);
-		if(flag == INPUT_PAR)
+		if(flag == input_par)
 			h->table[index]->input_parameter_list = ip_list; 
 		else if(flag == OUTPUT_PAR)
 			h->table[index]->output_parameter_list = ip_list;
@@ -70,9 +71,9 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 			new_entry->next = h->table[index];
 			h->table[index] = new_entry;
 		}
-		else if (flag == INPUT_PAR){
+		else if (flag == input_par){
 			temp = h->table[index];
-			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+			while(temp!= NULL && strcmp(temp->fname,fname)!=0)
 				temp = temp->next;
 			if(temp == NULL)
 				printf("Wrong function name specified as parameter");
@@ -82,9 +83,9 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 			}
 
 		}
-		else if(flag == OUTPUT_PAR){
+		else if(flag == output_par){
 			temp = h->table[index];
-			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+			while(temp!= NULL && strcmp(temp->fname,fname)!=0)
 				temp = temp->next;
 			if(temp == NULL)
 				printf("Wrong function name specified as parameter");
@@ -98,7 +99,7 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 
 void search_function_hashtable(function_hashtable* h, char *fname){
 	int index;
-	function_hashtable *pos;
+	function_node *pos;
 	index = hash_function(fname, h->size);
 	pos = h->table[index];
 	while(pos!=NULL){
@@ -113,7 +114,7 @@ void search_function_hashtable(function_hashtable* h, char *fname){
 //Used to print the Hash Table
 void print_function_hashtable(function_hashtable* h){
 	int i=0;
-	function_hashtable* current_pointer;
+	function_node* current_pointer;
 	identifier_list* current_id;
 	//printf("%d\n", h->size);
 	for (i=0;i<h->size;i++){
