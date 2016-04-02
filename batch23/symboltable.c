@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "lexerDef.h"
+#include "parserDef.h"
 #include "symboltableDef.h"
-#include "symboltable.h"
 #include "helper_functions.h"
 
 function_hashtable* create_function_hashtable(int size){
@@ -11,9 +12,9 @@ function_hashtable* create_function_hashtable(int size){
 	if((h = (function_hashtable*) malloc(sizeof(function_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (function_node**) malloc(sizeof(function_node*) * size)) == NULL)
+	if((h->table = (function_node **) malloc(sizeof(function_node *) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(function_node*)*size);
+	bzero(h->table, sizeof(function_node *)*size);
 	h->size = size;
 	return h;
 }
@@ -24,9 +25,9 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	if((h = (identifier_hashtable*) malloc(sizeof(identifier_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (identifier_list**) malloc(sizeof(identifier_list*) * size)) == NULL)
+	if((h->table = (identifier_list *) malloc(sizeof(identifier_list) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(identifier_list*)*size);
+	bzero(h->table, sizeof(identifier_list)*size);
 	h->size = size;
 	return h;
 }
@@ -57,23 +58,26 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 	int index;
 	index = hash_function(fname,h->size);
 	if(h->table[index] == NULL){ //check this condition
-		strcpy(h->table[index]->fname, fname);
+        h->table[index] = (function_node *)malloc(sizeof(function_node));
+        bzero(h->table[index],sizeof(function_node));
+		h->table[index]->fname = fname;
 		if(flag == input_par)
 			h->table[index]->input_parameter_list = ip_list; 
-		else if(flag == OUTPUT_PAR)
+		else if(flag == output_par)
 			h->table[index]->output_parameter_list = ip_list;
 	}
 	else{
 		function_node *new_entry, *temp;
 		new_entry = (function_node*) malloc(sizeof(function_node));
-		strcpy(new_entry->fname,fname);
+        bzero(new_entry, sizeof(function_node));
+		new_entry->fname=fname;
 		if (flag == TK_FUNID){
 			new_entry->next = h->table[index];
 			h->table[index] = new_entry;
 		}
 		else if (flag == input_par){
 			temp = h->table[index];
-			while(temp!= NULL && strcmp(temp->fname,fname)!=0)
+			while(temp!=NULL && strcmp(temp->fname,fname)!=0)
 				temp = temp->next;
 			if(temp == NULL)
 				printf("Wrong function name specified as parameter");
@@ -104,10 +108,10 @@ void search_function_hashtable(function_hashtable* h, char *fname){
 	pos = h->table[index];
 	while(pos!=NULL){
 		if(strcmp(fname,pos->fname) == 0)
-			return 1;
+			return;
 		pos = pos->next;
 	}
-	return 0;	
+	return;	
 
 }
 
@@ -128,7 +132,7 @@ void print_function_hashtable(function_hashtable* h){
 				printf("%s %s ", current_id->name, current_id->type);
 				current_id = current_id->next;
 			}
-			printf("\nOutput Parameters: ")
+			printf("\nOutput Parameters: ");
 			current_id = current_pointer->output_parameter_list;
 			while(current_id != NULL){
 				printf("%s %s ", current_id->name, current_id->type);

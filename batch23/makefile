@@ -1,5 +1,5 @@
 all:clean
-	gcc lexer.c helper_functions.c ff.c parser.c driver.c -o stage1exe -g
+	gcc lexer.c helper_functions.c ff.c parser.c symboltable.c populateHashTable.c driver.c -o stage1exe -g
 ff:
 	gcc helper_functions.c ff.c -o ff -g
 clean:
