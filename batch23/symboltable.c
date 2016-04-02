@@ -55,9 +55,9 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
     return newPair;
 }
 
-void add_identifier_to_hashtable(identifier_hashtable *h, char *name, char *type){
+void add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type){
 	int index;
-	index = hash_function(identifier_list->name, h->size);
+	index = hash_function(name, h->size);
 	if(h->table[index] == NULL){
 		h->table[index] = (identifier_list *)malloc(sizeof(identifier_list));
         bzero(h->table[index],sizeof(identifier_list));
@@ -66,6 +66,37 @@ void add_identifier_to_hashtable(identifier_hashtable *h, char *name, char *type
 	else{
 		h->table[index] = addIdentifier(h->table[index], name, type);	
 	}
+}
+
+void add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
+	int index;
+	index = hash_function(fname, h->size);
+	if(h->table[index] == NULL){
+		h->table[index] = (function_identifier_node *)malloc(sizeof(function_identifier_node));
+        bzero(h->table[index],sizeof(function_identifier_node));
+		h->table[index]->fname = fname;
+		h->table[index]->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
+		add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type);
+	}
+	else{
+		function_identifier_node *new_entry, *temp;
+		temp = h->table[index];
+		while(temp != NULL && strcmp(temp->fname,fname)!=0){
+			temp = temp->next;
+		}
+		if(temp == NULL){
+			new_entry = (function_identifier_node*) malloc(sizeof(function_identifier_node));
+        	bzero(new_entry, sizeof(function_identifier_node));
+			new_entry->fname=fname;
+			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
+			temp = new_entry;
+		}
+		
+		add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
+		temp->next = h->table[index];
+		h->table[index] = temp;
+		
+	}	
 }
 //Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
 void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
