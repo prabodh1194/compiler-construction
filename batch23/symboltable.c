@@ -4,8 +4,8 @@
 #include "lexerDef.h"
 #include "parserDef.h"
 #include "symboltableDef.h"
-#include "helper_functions.h"
 #include "symboltable.h"
+#include "helper_functions.h"
 
 function_hashtable* create_function_hashtable(int size){
 	function_hashtable* h = NULL;
@@ -26,9 +26,9 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	if((h = (identifier_hashtable*) malloc(sizeof(identifier_hashtable))) == NULL)
 		return NULL;
 
-	if((h->table = (identifier_list *) malloc(sizeof(identifier_list) * size)) == NULL)
+	if((h->table = (identifier_list **) malloc(sizeof(identifier_list *) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(identifier_list)*size);
+	bzero(h->table, sizeof(identifier_list *)*size);
 	h->size = size;
 	return h;
 }
