@@ -477,3 +477,38 @@ char * enum_to_grammar(int id)
     if(id == $) return "$1\0";
     else return '\0';
 }
+
+int isUseful(int tokenClass) {
+    /* returns false for tokens that don't serve any purpose
+     * after the parse tree is created
+     */
+    switch(tokenClass) {
+        case TK_MAIN:
+        case TK_END:
+        case TK_SEM:
+        case TK_INPUT:
+        case TK_PARAMETER:
+        case TK_LIST:
+        case TK_SQL:
+        case TK_SQR:
+        case TK_OUTPUT:
+        case TK_COMMA:
+        case TK_COLON:
+        case TK_DOT:
+        case TK_CALL:
+        case TK_WITH:
+        case TK_PARAMETERS:
+        case TK_ASSIGNOP:
+        case TK_WHILE:
+        case TK_ENDWHILE:
+        case TK_IF:
+        case TK_ENDIF:
+        case TK_OP:
+        case TK_CL:
+        case TK_RETURN:
+            return 0;
+            break;
+        default:
+            return 1;
+    }
+}

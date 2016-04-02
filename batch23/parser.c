@@ -126,7 +126,6 @@ void createParseTable(grammar g, table *t)
             }
         }
     }
-    printParseTable(*t);
 }
 
 char* getFirstSet(char *lhs, char *rhs, char *set)
@@ -336,7 +335,45 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
     return 1;
 }
 
+//construct an AST by removing useless nodes from the parse tree
+void createAbstractSyntaxTree(parseTree *p, parseTree *ast) {
+    /* recursively constructs the abstract syntax tree
+     * by removing "useless" nodes from the parse tree
+     * the ast must be initialized to the program node
+     * every call constructs a subtree of the ast
+     * rooted at the current nonterminal
+     */
+    int i, j, usefulChildrenCount = 0;
 
+    for(i = 0; i < p->nochildren; i++)
+        // all nonterminals are useful
+        if(!p->children[i].isTerminal || isUseful(p->children[i].term.tokenClass))
+            usefulChildrenCount++;
+
+    ast->nochildren = usefulChildrenCount;
+    ast->children = (parseTree *)malloc(ast->nochildren * sizeof(parseTree));
+
+    i = 0, j = 0;
+    while(i < p->nochildren) {
+        if(p->children[i].isTerminal) {
+            if(isUseful(p->children[i].term.tokenClass)) {
+                // copy ith node of p to jth node of ast
+                ast->children[j].isTerminal = 1;
+                ast->children[j].term.tokenClass = p->children[i].term.tokenClass;
+                strcpy(ast->children[j].term.lexeme, p->children[i].term.lexeme);
+                ast->children[j].term.line_num = p->children[i].term.line_num;
+                j++;
+            }
+        }
+        else { 
+            // recursively construct the ast rooted here
+            ast->children[j].nonterm = p->children[i].nonterm;
+            createAbstractSyntaxTree(&p->children[i], &ast->children[j]);
+            j++;
+        }
+        i++;
+    }
+}
 
 //print contents od parsetable
 void printParseTable(table t)
