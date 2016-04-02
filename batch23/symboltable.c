@@ -33,6 +33,19 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	return h;
 }
 
+function_local_identifier_hashtable* create_function_local_identifier_hashtable(int size){
+	function_local_identifier_hashtable* h = NULL;
+	int i=0;
+	if((h = (function_local_identifier_hashtable*) malloc(sizeof(function_local_identifier_hashtable))) == NULL)
+		return NULL;
+
+	if((h->table = (function_identifier_node **) malloc(sizeof(function_identifier_node *) * size)) == NULL)
+		return NULL;
+	bzero(h->table, sizeof(function_identifier_node *)*size);
+	h->size = size;
+	return h;
+}
+
 identifier_list *create_identifier_list(char *name,char *type){
 	identifier_list *idlist;
 	idlist = addIdentifier(NULL,name,type);
