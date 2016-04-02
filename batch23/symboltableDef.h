@@ -28,7 +28,20 @@ struct identifier_hashtable{
 	int size;
 	struct identifier_list** table;
 };
+
+struct function_identifier_node{
+    char *fname;
+    struct identifier_hashtable* id_hashtable;
+    struct function_identifier_node *next;
+};
+struct function_wise_identifier_hashtable{
+    int size;
+    struct function_identifier_node** table;
+};
+
 typedef struct identifier_list identifier_list;
 typedef struct identifier_hashtable identifier_hashtable;
+typedef struct function_identifier_node function_identifier_node;
+typedef struct function_wise_identifier_hashtable function_wise_identifier_hashtable;
 
 #endif
