@@ -1,5 +1,5 @@
-#ifndef LEXERDEF
-#define LEXERDEF
+#ifndef SYMBOLTABLEDEF
+#define SYMBOLTABLEDEF
 
 struct identifier_list{
 	char *name;

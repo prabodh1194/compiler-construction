@@ -30,7 +30,7 @@ int main(int argc, char **args)
 
         grammar g; //data structure to store grammar as a double dimensional array of respective enums
     table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
-    parseTree *tree; //parsetree datastructure--this is the root of the tree
+    parseTree *tree,*ast; //parsetree datastructure--this is the root of the tree
     tokenInfo *to; //get token from the code file in getNextToken()
 
     to = (tokenInfo *)malloc(sizeof(tokenInfo)); //stores tokens from the code
@@ -53,7 +53,7 @@ int main(int argc, char **args)
 
     do
     {
-        printf("1. Print comment free code\n2. Print token list\n3. Syntactic analysis of code\n4. Print parse tree.\n5. Print FIRST and FOLLOW sets\n6. Exit\n(1/2/3/4/5/6)\t");
+        printf("1. Print comment free code\n2. Print token list\n3. Syntactic analysis of code\n4. Print parse tree\n5. Print FIRST and FOLLOW sets\n6. Generate AST\n7. Populate ST\n8. Exit\n(1/2/3/4/5/6/7/8)\t");
         scanf("%d",&choice);
         switch(choice)
         {
@@ -102,6 +102,8 @@ int main(int argc, char **args)
                 printff(2);
                 break;
             case 6:
+                createAbstractSyntaxTree(tree, ast);
+            case 8:
                 break;
             default:
                 printf("Wrong choice\n");
