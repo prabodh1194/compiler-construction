@@ -11,7 +11,7 @@ parseDef.h: defines the variables and data structures used in parser.c
 
 #include "lexer.h"
 
-#define NON_TERMINAL_OFFSET 12345 // Offset for Non-Terminal's enum. Terminal Enum starts from 0.
+#define NON_TERMINAL_OFFSET 1000 // Offset for Non-Terminal's enum. Terminal Enum starts from 0.
 #define gg (*g)
 #define MAX_RULES 88 // Number of rules in Grammar
 #define MAX_RULE_SIZE 100 // Maximum size of a rule

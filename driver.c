@@ -1,9 +1,9 @@
 /*
-BATCH NUMBER: 23
-PRABODH AGARWAL 2012B1A7801P
-DEEPANSHU SINGH 2012B3A7593P
+   BATCH NUMBER: 23
+   PRABODH AGARWAL 2012B1A7801P
+   DEEPANSHU SINGH 2012B3A7593P
 
-driver.c:
+   driver.c:
 
 */
 
@@ -14,6 +14,7 @@ driver.c:
 #include "helper_functions.h"
 #include "parser.h"
 
+extern short compilation; //compilation flag
 int main(int argc, char **args)
 {
     int i,j,choice,flag=0;
@@ -21,7 +22,13 @@ int main(int argc, char **args)
     FILE *fp = fopen(args[1],"r");
     FILE *outfile = fopen(args[2],"w");
 
-    grammar g; //data structure to store grammar as a double dimensional array of respective enums
+    printf("\n(a) FIRST and FOLLOW set automated");
+    printf("\n(b) Both lexical and syntax analysis modules implemented");
+    printf("\n(c) Modules compile suxxefully");
+    printf("\n(d) modules work with all testcases");
+    printf("\n(e) Parse tree constructed\n");
+
+        grammar g; //data structure to store grammar as a double dimensional array of respective enums
     table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
     parseTree *tree; //parsetree datastructure--this is the root of the tree
     tokenInfo *to; //get token from the code file in getNextToken()
@@ -69,6 +76,8 @@ int main(int argc, char **args)
                     parseInputSourceCode(fp,t,g,tree,to);
                     flag=1;
                     fclose(fp);
+                    if(compilation)
+                        printf("\nCode compiled succesfully\n");
                 }
                 else
                     printf("Restart driver\n");
@@ -80,16 +89,19 @@ int main(int argc, char **args)
                     printf("Please use option 3 before doing this\n");
                     break;
                 }
-                fprintf(outfile,"\nlexemeCurrentNode\tlineno\t\ttoken\t\tNodeSymbol\t\t    parentNodeSymbol\t isLeafNode\tvalueIfNumber");
+                fprintf(outfile,"\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
                 printParseTree(tree, outfile);
                 printf("\n");
                 fclose(outfile);
+                printf("\nUse gedit outfile.txt to view the parse tree\n");
                 break;
             case 5:
                 //print first set
                 printff(1);
                 //print follow sets
                 printff(2);
+                break;
+            case 6:
                 break;
             default:
                 printf("Wrong choice\n");
