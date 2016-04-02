@@ -54,6 +54,14 @@ void populateFunctionST(parseTree *p, function_hashtable *funcs, char *fname, in
                 else
                     id->type = p->children[i-1].children[0].children[0].term.lexeme;
                 id->next = NULL;
+                if(p->children[i+1].children[0].term.tokenClass==eps)
+                {
+                    //local
+                }
+                else
+                {
+                    //global
+                }
             }
             continue;
         }
