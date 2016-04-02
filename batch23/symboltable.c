@@ -33,10 +33,10 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	return h;
 }
 
-function_local_identifier_hashtable* create_function_local_identifier_hashtable(int size){
-	function_local_identifier_hashtable* h = NULL;
+function_wise_identifier_hashtable* create_function_local_identifier_hashtable(int size){
+	function_wise_identifier_hashtable* h = NULL;
 	int i=0;
-	if((h = (function_local_identifier_hashtable*) malloc(sizeof(function_local_identifier_hashtable))) == NULL)
+	if((h = (function_wise_identifier_hashtable*) malloc(sizeof(function_wise_identifier_hashtable))) == NULL)
 		return NULL;
 
 	if((h->table = (function_identifier_node **) malloc(sizeof(function_identifier_node *) * size)) == NULL)
