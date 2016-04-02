@@ -25,17 +25,17 @@ identifier_hashtable* create_identifier_hashtable(int size){
 
 	if((h->table = (identifer_list*) malloc(sizeof(identifier_list) * size)) == NULL)
 		return NULL;
-	bzero(h->table, sizeof(function_node)*size);
+	bzero(h->table, sizeof(identifier_list)*size);
 	h->size = size;
 	return h;
 }
 
-identifier_list *create_identifier_list(char *name,int type){
+identifier_list *create_identifier_list(char *name,char *type){
 	identifier_list *idlist;
 	idlist = addIdentifier(NULL,name,type);
 	return idlist;
 }
-identifier_list *addIdentifier(identifier_list *idlist, char *name, int type){ //, char *nameOfRecord) {
+identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
     /* appends a new (name, type) pair to the end of idlist
      * and returns a pointer to the new list
      */
@@ -44,35 +44,55 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, int type){ /
     newPair->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
     //newPair->identifier.nameOfRecord = (char *)malloc((strlen(nameOfRecord) + 1) * sizeof(char));
     //strcpy(newPair->identifier.nameOfRecord, nameOfRecord);
-    strcpy(newPair->identifier.name, name);
+    strcpy(newPair->name, name);
     newPair->type = type;
-    while(idlist->next!= NULL)
-    	idlist = idlist->next;
+    newPair->next = idlist;
     idlist = newPair;
-    newPair->next = NULL;
 
     return newPair;
 }
 //Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
-void fill_function_hashtable(function_hashtable* h, char* fname, input_parameter_list* ip_list, output_parameter_list *op_list){
+void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
 	int index;
 	index = hash_function(fname,h->size);
-	if(h->table[index].fname == NULL){ //check this condition
-		strcpy(h->table[index].fname, fname);
-		h->table[index].input_parameter_list = ip_list;
-		h->table[index].output_parameter_list = op_list;
+	if(h->table[index] == NULL){ //check this condition
+		strcpy(h->table[index]->fname, fname);
+		if(flag == INPUT_PAR)
+			h->table[index]->input_parameter_list = ip_list; 
+		else if(flag == OUTPUT_PAR)
+			h->table[index]->output_parameter_list = ip_list;
 	}
 	else{
-		row *new_entry,*collision;
-		new_entry = (row*) malloc(sizeof(row));
+		function_node *new_entry, *temp;
+		new_entry = (function_node*) malloc(sizeof(function_node));
 		strcpy(new_entry->fname,fname);
-		new_entry->input_parameter_list = ip_list;
-		new_entry->output_parameter_list = op_list;
-		new_entry->next = NULL;
-		collision = &(h->table[index]);
-		while(collision->next != NULL)
-			collision = collision->next;
-		collision->next = new_entry;
+		if (flag == TK_FUNID){
+			new_entry->next = h->table[index];
+			h->table[index] = new_entry;
+		}
+		else if (flag == INPUT_PAR){
+			temp = h->table[index];
+			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+				temp = temp->next;
+			if(temp == NULL)
+				printf("Wrong function name specified as parameter");
+			else{
+				ip_list->next = temp->input_parameter_list;
+				temp->input_parameter_list = ip_list;
+			}
+
+		}
+		else if(flag == OUTPUT_PAR){
+			temp = h->table[index];
+			while(strcmp(temp->fname,fname)!=0 || temp!= NULL)
+				temp = temp->next;
+			if(temp == NULL)
+				printf("Wrong function name specified as parameter");
+			else{
+				ip_list->next = temp->output_parameter_list;
+				temp->output_parameter_list = ip_list;
+			}
+		}
 	}
 }
 
@@ -91,15 +111,29 @@ void search_function_hashtable(function_hashtable* h, char *fname){
 }
 
 //Used to print the Hash Table
-void print_hashtable(hashtable* h){
+void print_function_hashtable(function_hashtable* h){
 	int i=0;
-	row* current_pointer;
+	function_hashtable* current_pointer;
+	identifier_list* current_id;
 	//printf("%d\n", h->size);
 	for (i=0;i<h->size;i++){
 		//printf("%d %s\n",i, h->table[i].value);
-		current_pointer = &(h->table[i]);
+		current_pointer = h->table[i];
+		printf("%d \n",i);
 		while(current_pointer != NULL){
-			printf("%d %s %s\n",i,current_pointer->value,current_pointer->token);
+			printf("%s \nInput Paramters: ",current_pointer->fname);
+			current_id = current_pointer->input_parameter_list;
+			while(current_id != NULL){
+				printf("%s %s ", current_id->name, current_id->type);
+				current_id = current_id->next;
+			}
+			printf("\nOutput Parameters: ")
+			current_id = current_pointer->output_parameter_list;
+			while(current_id != NULL){
+				printf("%s %s ", current_id->name, current_id->type);
+				current_id = current_id->next;
+			}
+			printf("\n");
 			current_pointer = current_pointer->next;
 		}
 	}
