@@ -31,12 +31,33 @@ void populateFunctionST(parseTree *p, function_hashtable *funcs, char *fname, in
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
-                id->type = p->children[i-1].children[0].children[0].term.lexeme;
+                if(p->children[i-1].children[0].nonterm == constructedDatatype)
+                    id->type = p->children[i-1].children[0].children[1].term.lexeme;
+                else
+                    id->type = p->children[i-1].children[0].children[0].term.lexeme;
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
             }
             continue;
         }
+
+        if(p->nonterm == declarations)
+            state = declaration;
+        if(p->nonterm == declaration && state!=-1)
+        {
+            if(p->children[i].term.tokenClass == TK_ID)
+            {
+                id = (identifier_list *)malloc(sizeof(identifier_list));
+                id->name = p->children[i].term.lexeme;
+                if(p->children[i-1].children[0].nonterm == constructedDatatype)
+                    id->type = p->children[i-1].children[0].children[1].term.lexeme;
+                else
+                    id->type = p->children[i-1].children[0].children[0].term.lexeme;
+                id->next = NULL;
+            }
+            continue;
+        }
+
         if(p->nonterm == typeDefinition)
         {
             fname = p->children[1].term.lexeme;
