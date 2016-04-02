@@ -3,7 +3,7 @@
 
 struct identifier_list{
 	char *name;
-	int type;
+	char *type;
 	struct identifier_list* next;
 };
 
