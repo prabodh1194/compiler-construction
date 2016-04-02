@@ -54,6 +54,19 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
 
     return newPair;
 }
+
+void add_identifier_to_hashtable(identifier_hashtable *h, char *name, char *type){
+	int index;
+	index = hash_function(identifier_list->name, h->size);
+	if(h->table[index] == NULL){
+		h->table[index] = (identifier_list *)malloc(sizeof(identifier_list));
+        bzero(h->table[index],sizeof(identifier_list));
+		h->table[index] = addIdentifier(h->table[index], name, type);
+	}
+	else{
+		h->table[index] = addIdentifier(h->table[index], name, type);	
+	}
+}
 //Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
 void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
 	int index;
