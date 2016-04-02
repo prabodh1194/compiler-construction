@@ -12,9 +12,7 @@ function_hashtable* create_function_hashtable(int size){
 
 	if((h->table = (function_node*) malloc(sizeof(function_node) * size)) == NULL)
 		return NULL;
-	for (i=1;i<=size;i++){
-		h->table.fname = (char *)malloc(sizeof(char)*MAX_ID_SIZE);
-	}
+	bzero(h->table, sizeof(function_node)*size);
 	h->size = size;
 	return h;
 }
@@ -27,6 +25,7 @@ identifier_hashtable* create_identifier_hashtable(int size){
 
 	if((h->table = (identifer_list*) malloc(sizeof(identifier_list) * size)) == NULL)
 		return NULL;
+	bzero(h->table, sizeof(function_node)*size);
 	h->size = size;
 	return h;
 }
@@ -81,7 +80,7 @@ void search_function_hashtable(function_hashtable* h, char *fname){
 	int index;
 	function_hashtable *pos;
 	index = hash_function(fname, h->size);
-	pos = &(h->table[index]);
+	pos = h->table[index];
 	while(pos!=NULL){
 		if(strcmp(fname,pos->fname) == 0)
 			return 1;
