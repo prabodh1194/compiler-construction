@@ -102,12 +102,15 @@ void add_function_local_identifier_hashtable(function_wise_identifier_hashtable 
         	bzero(new_entry, sizeof(function_identifier_node));
 			new_entry->fname=fname;
 			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
-			temp = new_entry;
+			add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
+			new_entry->next = h->table[index];
+			h->table[index] = new_entry;
 		}
-		
-		add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
-		temp->next = h->table[index];
-		h->table[index] = temp;
+		else{
+			add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
+			temp->next = h->table[index];
+			h->table[index] = temp;
+		}
 		
 	}	
 }
