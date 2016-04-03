@@ -201,10 +201,10 @@ void print_identifier_hashtable(identifier_hashtable *h){
 	for (i=0;i<h->size;i++){
 		//printf("%d %s\n",i, h->table[i].value);
 		current_pointer = h->table[i];
-		printf("%d \n",i);
+		printf("\t\t%d \n",i);
 		while(current_pointer != NULL){
-			printf("Identifier Name: %s", current_pointer->name);
-			printf("Type: %s\n", current_pointer->type);
+			printf("\t\tIdentifier Name: %s", current_pointer->name);
+			printf("\t\tType: %s\n", current_pointer->type);
 			current_pointer = current_pointer->next;
 		}
 	}
