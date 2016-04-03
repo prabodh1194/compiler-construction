@@ -201,3 +201,36 @@ void print_function_hashtable(function_hashtable* h){
 		}
 	}
 }
+
+void print_identifier_hashtable(identifier_hashtable *h){
+	int i;
+	identifier_list* current_pointer;
+	for (i=0;i<h->size;i++){
+		//printf("%d %s\n",i, h->table[i].value);
+		current_pointer = h->table[i];
+		printf("%d \n",i);
+		while(current_pointer != NULL){
+			printf("Identifier Name: %s", current_pointer->name);
+			printf("Type: %s\n", current_pointer->type);
+			current_pointer = current_pointer->next;
+		}
+	}
+}
+
+void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h){
+	int i;
+	function_identifier_node* current_pointer;
+	identifier_hashtable* current_identifier_hashtable;
+	//printf("%d\n", h->size);
+	for (i=0;i<h->size;i++){
+		//printf("%d %s\n",i, h->table[i].value);
+		current_pointer = h->table[i];
+		printf("%d \n",i);
+		while(current_pointer != NULL){
+			printf("%s \nCurrent Function Scope: ",current_pointer->fname);
+			current_identifier_hashtable = current_pointer->id_hashtable;
+			print_identifier_hashtable(current_identifier_hashtable);
+			current_pointer = current_pointer->next;
+		}
+	}
+}
