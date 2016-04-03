@@ -98,11 +98,11 @@ void add_function_local_identifier_hashtable(function_wise_identifier_hashtable 
 			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
 			add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
 		}
-			
+
 			add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
 			temp->next = h->table[index];
 			h->table[index] = temp;
-		}
+		
 		
 	}	
 }
