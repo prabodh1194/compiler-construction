@@ -87,7 +87,13 @@ void print_hashtable(hashtable* h){
 int hash_function(char* key, int size){
 	int i=0,sum=0;
 	while(key[i]!='\0')
-		sum += (int)key[i++]-97;
+    {
+		sum += (int)key[i++];
+        if(key[i-1]>='0' && key[i-1]<='9')
+            sum-=48;
+        else
+            sum-=97;
+    }
 	return sum%size;
 }
 

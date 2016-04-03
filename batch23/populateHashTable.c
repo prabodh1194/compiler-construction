@@ -4,6 +4,7 @@
 #include "parserDef.h"
 #include "symboltableDef.h"
 #include "symboltable.h"
+#include <string.h>
 
 void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, char *fname, int state)
 {
@@ -13,6 +14,12 @@ void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_i
     {
         if(p->term.tokenClass == TK_SEM)
             state = -1;
+
+        if(p->nonterm == mainFunctions)
+        {
+            fname = (char *)malloc(sizeof(char)*6);
+            strcpy(fname,"_main\0");
+        }
 
         if(p->nonterm == function)
         {
