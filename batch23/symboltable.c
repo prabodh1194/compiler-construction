@@ -57,7 +57,7 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
      */
 
     identifier_list *newPair = (identifier_list *)malloc(sizeof(identifier_list));
-    newPair->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
+    //newPair->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
     //newPair->identifier.nameOfRecord = (char *)malloc((strlen(nameOfRecord) + 1) * sizeof(char));
     //strcpy(newPair->identifier.nameOfRecord, nameOfRecord);
     newPair->name = name;
@@ -97,10 +97,8 @@ void add_function_local_identifier_hashtable(function_wise_identifier_hashtable 
 			new_entry->fname=fname;
 			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
 			add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
-			new_entry->next = h->table[index];
-			h->table[index] = new_entry;
 		}
-		else{
+			
 			add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
 			temp->next = h->table[index];
 			h->table[index] = temp;
