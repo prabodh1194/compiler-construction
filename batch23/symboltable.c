@@ -60,7 +60,7 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
     newPair->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
     //newPair->identifier.nameOfRecord = (char *)malloc((strlen(nameOfRecord) + 1) * sizeof(char));
     //strcpy(newPair->identifier.nameOfRecord, nameOfRecord);
-    strcpy(newPair->name, name);
+    newPair->name = name;
     newPair->type = type;
     newPair->next = idlist;
     idlist = newPair;
@@ -71,14 +71,8 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
 void add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type){
 	int index;
 	index = hash_function(name, h->size);
-	if(h->table[index] == NULL){
-		h->table[index] = (identifier_list *)malloc(sizeof(identifier_list));
-        bzero(h->table[index],sizeof(identifier_list));
-		h->table[index] = addIdentifier(h->table[index], name, type);
-	}
-	else{
-		h->table[index] = addIdentifier(h->table[index], name, type);	
-	}
+	h->table[index] = addIdentifier(h->table[index], name, type);
+	
 }
 
 void add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
