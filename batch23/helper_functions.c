@@ -91,6 +91,10 @@ int hash_function(char* key, int size){
 		sum += (int)key[i++];
         if(key[i-1]>='0' && key[i-1]<='9')
             sum-=48;
+        else if(key[i-1]=='#')
+            sum-=35;
+        else if(key[i-1]=='_')
+            sum-=95;
         else
             sum-=97;
     }

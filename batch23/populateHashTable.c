@@ -6,7 +6,7 @@
 #include "symboltable.h"
 #include <string.h>
 
-void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, char *fname, int state)
+void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, identifier_hashtable *global, function_wise_identifier_hashtable *record, char *fname, int state)
 {
     int i, nochildren = p->nochildren;
     identifier_list *id;
@@ -67,7 +67,7 @@ void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_i
                 }
                 else
                 {
-                    //global
+                    add_identifier_to_identifierhashtable(global, id->name, id->type);
                 }
             }
             continue;
@@ -76,13 +76,20 @@ void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_i
         if(p->nonterm == typeDefinition)
         {
             state = TK_RECORD;
+            fname = p->children[1].term.lexeme;
         }
         else if(p->nonterm == fieldDefinition && state!=-1)
         {
             if(p->children[i].term.tokenClass == TK_FIELDID)
             {
+                id = (identifier_list *)malloc(sizeof(identifier_list));
+                id->name = p->children[i].term.lexeme;
+                id->type = p->children[i-1].children[0].term.lexeme;
+                id->next = NULL;
+                add_function_local_identifier_hashtable(record, fname, id);
             }
+            continue;
         }
-        populateFunctionST(p->children+i, funcs, local, fname, state);
+        populateFunctionST(p->children+i, funcs, local, global, record, fname, state);
     }
 }

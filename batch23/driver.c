@@ -42,6 +42,8 @@ int main(int argc, char **args)
 
     function_hashtable *funcs = create_function_hashtable(31);
     function_wise_identifier_hashtable *local = create_function_local_identifier_hashtable(31);
+    function_wise_identifier_hashtable *record = create_function_local_identifier_hashtable(31);
+    identifier_hashtable *global = create_identifier_hashtable(31);
 
     //init parsetable to default as no rules available
     for(i=0;i<MAX_NON_TERMINALS;i++)
@@ -112,9 +114,11 @@ int main(int argc, char **args)
                 createAbstractSyntaxTree(tree, ast);
                 break;
             case 7:
-                populateFunctionST(ast,funcs, local,NULL,-1);
+                populateFunctionST(ast,funcs, local, global, record, NULL,-1);
                 print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
+                print_function_wise_identifier_hashtable(record);
+                print_identifier_hashtable(global);
                 break;
             case 8:
                 break;
