@@ -114,6 +114,7 @@ int main(int argc, char **args)
             case 7:
                 populateFunctionST(ast,funcs, local,NULL,-1);
                 print_function_hashtable(funcs);
+                print_function_wise_identifier_hashtable(local);
                 break;
             case 8:
                 break;
