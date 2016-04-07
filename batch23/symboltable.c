@@ -104,8 +104,9 @@ void add_function_local_identifier_hashtable(function_wise_identifier_hashtable 
 			add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
 	}	
 }
+
 //Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
-void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
+int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
 	int index;
 	index = hash_function(fname,h->size);
 	if(h->table[index] == NULL){ //check this condition
@@ -116,6 +117,7 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 			h->table[index]->input_parameter_list = ip_list; 
 		else if(flag == output_par)
 			h->table[index]->output_parameter_list = ip_list;
+		return 1;
 	}
 	else{
 		function_node *new_entry, *temp;
@@ -123,8 +125,16 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
         bzero(new_entry, sizeof(function_node));
 		new_entry->fname=fname;
 		if (flag == TK_FUNID){
-			new_entry->next = h->table[index];
-			h->table[index] = new_entry;
+			temp = h->table[index];
+			while(temp!=NULL && strcmp(temp->fname,fname)!=0)
+				temp = temp->next;
+			if(temp == NULL){
+				new_entry->next = h->table[index];
+				h->table[index] = new_entry;
+				return 1;
+			}
+			else
+				return -1;
 		}
 		else if (flag == input_par){
 			temp = h->table[index];
@@ -149,23 +159,41 @@ void add_function(function_hashtable* h, char* fname, identifier_list* ip_list, 
 				temp->output_parameter_list = ip_list;
 			}
 		}
+		return 1;
 	}
 }
 
-void search_function_hashtable(function_hashtable* h, char *fname){
+function_node* search_function_hashtable(function_hashtable* h, char *fname){
 	int index;
 	function_node *pos;
 	index = hash_function(fname, h->size);
 	pos = h->table[index];
 	while(pos!=NULL){
 		if(strcmp(fname,pos->fname) == 0)
-			return;
+			return pos;
 		pos = pos->next;
 	}
-	return;	
+	return NULL;	
 
 }
 
+identifier_list* get_input_parameter_list(function_hashtable* h, char *fname){
+	function_node* flag;
+	flag = search_function_hashtable(h,fname);
+	if(flag != NULL)
+		return flag->input_parameter_list;
+	else
+		return NULL;
+}
+
+identifier_list* get_output_parameter_list(function_hashtable* h, char *fname){
+	function_node* flag;
+	flag = search_function_hashtable(h,fname);
+	if(flag != NULL)
+		return flag->output_parameter_list;
+	else
+		return NULL;
+}
 //Used to print the Hash Table
 void print_function_hashtable(function_hashtable* h){
 	int i=0;
