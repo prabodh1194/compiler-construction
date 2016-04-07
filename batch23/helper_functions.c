@@ -508,14 +508,14 @@ int isUseful(int tokenClass) {
         case TK_CALL:
         case TK_WITH:
         case TK_PARAMETERS:
-        case TK_ASSIGNOP:
         case TK_WHILE:
         case TK_ENDWHILE:
         case TK_IF:
         case TK_ENDIF:
         case TK_OP:
         case TK_CL:
-        case TK_RETURN:
+        case TK_TYPE:
+        case eps:
             return 0;
             break;
         default:

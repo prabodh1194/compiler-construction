@@ -21,11 +21,12 @@ extern hashtable *h;
 char * getFirstSet(char *, char *, char *);
 char * getFollowSet(char *);
 void printParseTree(parseTree *p, FILE *outfile);
+void printasTree(astree *p, FILE *outfile);
 void printParseTable(table t);
 int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *root, tokenInfo *t);
 char* getFirstSet(char *lhs, char *rhs, char *set);
 void createParseTable(grammar g, table *t);
 void getGrammar(grammar *g);
 void printExpectedTokens(nontermid state, table tb);
-void createAbstractSyntaxTree(parseTree*, parseTree*);
+void createAbstractSyntaxTree(parseTree*, astree*);
 #endif

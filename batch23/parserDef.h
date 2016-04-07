@@ -84,5 +84,17 @@ struct parseTree{
     int nochildren; // number of children of a node
 };
 
+struct astree{
+    union { //union used because a node can either be a non terminal or a terminal not both
+    nontermid nonterm;
+    tokenInfo term;
+    };
+    short isTerminal; // whether the node is a terminal or not
+    struct astree *children; // to store pointers to the children of the node
+    int nochildren; // number of children of a node
+    terminalId type; // used by ast for typechecking
+};
+
 typedef struct parseTree parseTree;
+typedef struct astree astree;
 #endif

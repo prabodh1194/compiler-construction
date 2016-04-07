@@ -6,7 +6,7 @@
 #include "symboltable.h"
 #include <string.h>
 
-void populateFunctionST(parseTree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, identifier_hashtable *global, function_wise_identifier_hashtable *record, char *fname, int state)
+void populateFunctionST(astree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, identifier_hashtable *global, function_wise_identifier_hashtable *record, char *fname, int state)
 {
     int i, nochildren = p->nochildren;
     identifier_list *id;

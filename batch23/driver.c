@@ -33,12 +33,13 @@ int main(int argc, char **args)
 
         grammar g; //data structure to store grammar as a double dimensional array of respective enums
     table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
-    parseTree *tree,*ast; //parsetree datastructure--this is the root of the tree
+    parseTree *tree; //parsetree datastructure--this is the root of the tree
+    astree *ast;
     tokenInfo *to; //get token from the code file in getNextToken()
 
     to = (tokenInfo *)malloc(sizeof(tokenInfo)); //stores tokens from the code
     tree = (parseTree *)malloc(sizeof(parseTree));
-    ast = (parseTree *)malloc(sizeof(parseTree));
+    ast = (astree *)malloc(sizeof(astree));
 
     function_hashtable *funcs = create_function_hashtable(31);
     function_wise_identifier_hashtable *local = create_function_local_identifier_hashtable(31);
@@ -81,7 +82,8 @@ int main(int argc, char **args)
                     getNextToken(fp,to);
                     ast->nonterm = tree->nonterm = program;
                     ast->isTerminal = tree->isTerminal = 0;
-                    ast->children = tree->children = NULL;
+                    ast->children = NULL; 
+                    tree->children = NULL;
                     parseInputSourceCode(fp,t,g,tree,to);
                     flag=1;
                     fclose(fp);
@@ -112,9 +114,10 @@ int main(int argc, char **args)
                 break;
             case 6:
                 createAbstractSyntaxTree(tree, ast);
+                printasTree(ast, outfile);
                 break;
             case 7:
-                populateFunctionST(ast,funcs, local, global, record, NULL,-1);
+                populateFunctionST(ast, funcs, local, global, record, NULL,-1);
                 print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
                 print_function_wise_identifier_hashtable(record);

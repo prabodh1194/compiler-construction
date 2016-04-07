@@ -2,7 +2,7 @@
 %Following function computes the sum of user defined real numbers
 %The variable d3 maintains the sum of values
 _sumN  input parameter list [int d5cc34]  
-output parameter list[real d3];
+output parameter list[real d3, int a2];
 	type int : b5b567;
 	b5b567 <--- 1;
 	d3 <--- 0.00;
@@ -11,7 +11,7 @@ output parameter list[real d3];
 		d3 <--- d3 + c3bd;
 		b5b567 <--- b5b567 + 1;
 	endwhile
-	return [d3];
+	return [d3, a2];
 end
 
 _main

@@ -336,7 +336,8 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 }
 
 //construct an AST by removing useless nodes from the parse tree
-void createAbstractSyntaxTree(parseTree *p, parseTree *ast) {
+void createAbstractSyntaxTree(parseTree *p, astree *ast) 
+{
     /* recursively constructs the abstract syntax tree
      * by removing "useless" nodes from the parse tree
      * the ast must be initialized to the program node
@@ -349,9 +350,11 @@ void createAbstractSyntaxTree(parseTree *p, parseTree *ast) {
         // all nonterminals are useful
         if(!p->children[i].isTerminal || isUseful(p->children[i].term.tokenClass))
             usefulChildrenCount++;
+    if(usefulChildrenCount == 0)
+        return;
 
     ast->nochildren = usefulChildrenCount;
-    ast->children = (parseTree *)malloc(ast->nochildren * sizeof(parseTree));
+    ast->children = (astree *)malloc(ast->nochildren * sizeof(astree));
 
     i = 0, j = 0;
     while(i < p->nochildren) {
@@ -365,10 +368,38 @@ void createAbstractSyntaxTree(parseTree *p, parseTree *ast) {
                 j++;
             }
         }
-        else { 
+        else {
             // recursively construct the ast rooted here
+            parseTree *temp = p->children;
+            temp+=i;
+            int nochildrenl;
+            if(usefulChildrenCount == 1)
+            {
+                while(temp->nochildren == 1 && !temp->children[0].isTerminal)
+                {
+                    nochildrenl = temp->children[0].nochildren;
+                    temp = temp->children[0].children;
+                }
+            }
             ast->children[j].nonterm = p->children[i].nonterm;
-            createAbstractSyntaxTree(&p->children[i], &ast->children[j]);
+            ast->children[j].isTerminal = 0;
+            createAbstractSyntaxTree(temp, &ast->children[j]);
+            if(ast->children[j].nochildren==0)
+            {
+                ast->nochildren-=1;
+                j-=1;
+            }
+            if(ast->children[j].nochildren==1)
+            {
+                astree *temp = ast->children[j].children;
+                if(temp[0].isTerminal)
+                {
+                    ast->children[j].isTerminal = 1;
+                    ast->children[j].term.tokenClass = temp->term.tokenClass;
+                    strcpy(ast->children[j].term.lexeme, temp->term.lexeme);
+                    ast->children[j].term.line_num = temp->term.line_num;
+                }
+            }
             j++;
         }
         i++;
@@ -412,6 +443,34 @@ void printParseTree(parseTree *p, FILE *outfile)
         {
             fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no",n,tokenName(t->nonterm),tokenName(p->nonterm));
             printParseTree(t, outfile);
+        }
+    }
+}
+
+void printasTree(astree *p, FILE *outfile)
+{
+    int nochildren = p->nochildren, i;
+    astree *t;
+
+    if(p->nonterm<NON_TERMINAL_OFFSET)
+        return;
+
+    t = p->children;
+
+    for (i = 0; i < nochildren; i++,t++) 
+    {
+        char n[100];
+        bzero(n,100);
+        if(t->term.tokenClass == TK_NUM || t->term.tokenClass == TK_RNUM)
+            strcpy(n , t->term.lexeme);
+        else
+            strcpy(n , "----");
+        if(t->isTerminal)
+            fprintf(outfile,"\n%20s%12llu\t%15s\t\t%16s\t\t\t\t\t            %20s\t\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
+        else
+        {
+            fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no",n,tokenName(t->nonterm),tokenName(p->nonterm));
+            printasTree(t, outfile);
         }
     }
 }
