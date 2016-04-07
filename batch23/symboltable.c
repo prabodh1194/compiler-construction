@@ -163,6 +163,43 @@ int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, i
 	}
 }
 
+identifier_hashtable* get_function_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname){
+	int index;
+	function_identifier_node *pos;
+	index = hash_function(fname, h->size);
+	pos = h->table[index];
+	while(pos!=NULL){
+		if(strcmp(fname,pos->fname) == 0)
+			return pos->id_hashtable;
+		pos = pos->next;
+	}
+	return NULL;
+}
+
+identifier_list* search_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname, char *iname){
+	int index;
+	identifier_hashtable *idh;
+	identifier_list *idpos;
+	idh = get_function_identifier_hashtable(h,fname);
+	if(idh == NULL){
+		printf("Function's identifier hashtable not found. Check code for error");
+		return NULL;
+	}
+	else{
+		index = hash_function(iname, idh->size);
+		idpos = idh->table[index];
+		while(idpos!=NULL){
+			if(strcmp(iname,idpos->name) == 0)
+				return idpos;
+			idpos = idpos->next;
+		}
+		if(idpos == NULL){
+			printf("Identifier not found in the identifier hash table of function %s",fname);
+			return NULL;
+		}
+	}
+}
+
 function_node* search_function_hashtable(function_hashtable* h, char *fname){
 	int index;
 	function_node *pos;
