@@ -247,7 +247,7 @@ int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, i
 	}
 }
 
-identifier_list* get_global_identifier(identifier_hashtable* h, char *name){
+identifier_list* search_global_identifier(identifier_hashtable* h, char *name){
 	int index;
 	identifier_list* temp;
 	index = hash_function(name, h->size);
@@ -291,7 +291,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 			idpos = idpos->next;
 		}
 		if(idpos == NULL){
-			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s",fname); //Will remove this printf later
+			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s\n",fname); //Will remove this printf later
 			return NULL;
 		}
 	}

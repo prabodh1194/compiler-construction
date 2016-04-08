@@ -18,6 +18,6 @@ void print_function_hashtable(function_hashtable* h);
 void print_identifier_hashtable(identifier_hashtable *h);
 void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h);
 int compare_parameter_list_type(identifier_list* i1, identifier_list* i2);
-identifier_list* get_global_identifier(identifier_hashtable* h, char *name);
+identifier_list* search_global_identifier(identifier_hashtable* h, char *name);
 
 #endif
