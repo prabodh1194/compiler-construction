@@ -247,6 +247,19 @@ int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, i
 	}
 }
 
+identifier_list* get_global_identifier(identifier_hash_table* h, char *name){
+	int index;
+	identifier_list* temp;
+	index = hash_function(name, h->size);
+	temp = h->table[index];
+	while(temp!=NULL){
+		if(strcmp(temp->name,name)==0)
+			return temp;
+		temp = temp->next;
+	}
+	return NULL;
+}
+
 identifier_hashtable* get_function_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname){
 	int index;
 	function_identifier_node *pos;
@@ -375,4 +388,21 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 			current_pointer = current_pointer->next;
 		}
 	}
+}
+
+int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
+	identifier_list* temp1, *temp2;
+	temp1 = i1;
+	temp2 = i2;
+	while(temp1->type == temp2->type && (temp1 != NULL || temp2 != NULL)){
+		temp1 = temp1->next;
+		temp2 = temp2->next;
+	}
+	if(temp1 == NULL && temp2 == NULL)
+		return 1;
+	else
+		return -1;
+
+
+
 }
