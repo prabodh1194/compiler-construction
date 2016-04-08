@@ -92,7 +92,7 @@ struct astree{
     short isTerminal; // whether the node is a terminal or not
     struct astree *children; // to store pointers to the children of the node
     int nochildren; // number of children of a node
-    terminalId type; // used by ast for typechecking
+    int type; // used by ast for typechecking
 };
 
 typedef struct parseTree parseTree;

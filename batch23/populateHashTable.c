@@ -4,9 +4,10 @@
 #include "parserDef.h"
 #include "symboltableDef.h"
 #include "symboltable.h"
+#include "populateHashTable.h"
 #include <string.h>
 
-void populateFunctionST(astree *p, function_hashtable *funcs, function_wise_identifier_hashtable *local, identifier_hashtable *global, function_wise_identifier_hashtable *record, char *fname, int state)
+void populateFunctionST(parseTree *p, char *fname, int state)
 {
     int i, nochildren = p->nochildren;
     identifier_list *id;
@@ -44,8 +45,10 @@ void populateFunctionST(astree *p, function_hashtable *funcs, function_wise_iden
                     id->type = p->children[i-1].children[0].children[0].term.lexeme;
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
+                add_function_local_identifier_hashtable(local, fname, id);
             }
-            continue;
+            else if(!(!p->children[i].isTerminal && p->children[i].nonterm == remaining_list))
+                continue;
         }
 
         if(p->nonterm == declarations)
@@ -56,10 +59,10 @@ void populateFunctionST(astree *p, function_hashtable *funcs, function_wise_iden
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
-                if(p->children[i-1].children[0].nonterm == constructedDatatype)
-                    id->type = p->children[i-1].children[0].children[1].term.lexeme;
+                if(p->children[i-2].children[0].nonterm == constructedDatatype)
+                    id->type = p->children[i-2].children[0].children[1].term.lexeme;
                 else
-                    id->type = p->children[i-1].children[0].children[0].term.lexeme;
+                    id->type = p->children[i-2].children[0].children[0].term.lexeme;
                 id->next = NULL;
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
@@ -84,12 +87,12 @@ void populateFunctionST(astree *p, function_hashtable *funcs, function_wise_iden
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
-                id->type = p->children[i-1].children[0].term.lexeme;
+                id->type = p->children[i-2].children[0].term.lexeme;
                 id->next = NULL;
                 add_function_local_identifier_hashtable(record, fname, id);
             }
             continue;
         }
-        populateFunctionST(p->children+i, funcs, local, global, record, fname, state);
+        populateFunctionST(p->children+i, fname, state);
     }
 }

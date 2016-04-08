@@ -41,10 +41,10 @@ int main(int argc, char **args)
     tree = (parseTree *)malloc(sizeof(parseTree));
     ast = (astree *)malloc(sizeof(astree));
 
-    function_hashtable *funcs = create_function_hashtable(31);
-    function_wise_identifier_hashtable *local = create_function_local_identifier_hashtable(31);
-    function_wise_identifier_hashtable *record = create_function_local_identifier_hashtable(31);
-    identifier_hashtable *global = create_identifier_hashtable(31);
+    funcs = create_function_hashtable(31);
+    local = create_function_local_identifier_hashtable(31);
+    record = create_function_local_identifier_hashtable(31);
+    global = create_identifier_hashtable(31);
 
     //init parsetable to default as no rules available
     for(i=0;i<MAX_NON_TERMINALS;i++)
@@ -113,11 +113,11 @@ int main(int argc, char **args)
                 printff(2);
                 break;
             case 6:
-                createAbstractSyntaxTree(tree, ast);
+                createAbstractSyntaxTree(tree, ast, NULL);
                 printasTree(ast, outfile);
                 break;
             case 7:
-                populateFunctionST(ast, funcs, local, global, record, NULL,-1);
+                populateFunctionST(tree, NULL,-1);
                 print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
                 print_function_wise_identifier_hashtable(record);

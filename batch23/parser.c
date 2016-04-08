@@ -26,6 +26,9 @@
 #include "parserDef.h"
 #include "helper_functions.h"
 #include "parser.h"
+#include "symboltableDef.h"
+#include "symboltable.h"
+#include "populateHashTable.h"
 
 /*
  * read the grammar file and populate the data structure with respective enum
@@ -336,7 +339,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 }
 
 //construct an AST by removing useless nodes from the parse tree
-void createAbstractSyntaxTree(parseTree *p, astree *ast) 
+void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 {
     /* recursively constructs the abstract syntax tree
      * by removing "useless" nodes from the parse tree
@@ -345,6 +348,9 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast)
      * rooted at the current nonterminal
      */
     int i, j, usefulChildrenCount = 0;
+    terminalId type;
+    identifier_list *id;
+    char *typeS;
 
     for(i = 0; i < p->nochildren; i++)
         // all nonterminals are useful
@@ -359,12 +365,69 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast)
     i = 0, j = 0;
     while(i < p->nochildren) {
         if(p->children[i].isTerminal) {
+            if(p->children[j].term.tokenClass == TK_MAIN)
+                name = p->children[j].term.lexeme;
+
             if(isUseful(p->children[i].term.tokenClass)) {
                 // copy ith node of p to jth node of ast
                 ast->children[j].isTerminal = 1;
                 ast->children[j].term.tokenClass = p->children[i].term.tokenClass;
                 strcpy(ast->children[j].term.lexeme, p->children[i].term.lexeme);
                 ast->children[j].term.line_num = p->children[i].term.line_num;
+
+                if(ast->children[j].term.tokenClass == TK_FUNID && ast->nonterm == function)
+                    name = ast->children[j].term.lexeme;
+
+                if((ast->children[j].term.tokenClass == TK_ID || ast->children[j].term.tokenClass == TK_FIELDID) && ast->nonterm!=parameter_list && ast->nonterm!=declaration && ast->nonterm!=funCallStmt && ast->nonterm!=fieldDefinition)
+                {
+                    if(ast->children[j].term.tokenClass == TK_ID)
+                    {
+                        id = search_function_wise_identifier_hashtable(local, name, ast->children[j].term.lexeme);
+                        /*
+                        if(id==NULL)
+                            id = search_function_wise_identifier_hashtable(global, name, ast->children[j].term.lexeme);
+                            */
+                    }
+                    else
+                        id = search_function_wise_identifier_hashtable(record, name, ast->children[j].term.lexeme);
+
+                    if(id == NULL)
+                    {
+                        printf(" error:%llu %s doesn't exist\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                        return;
+                    }
+
+                    typeS = id->type;
+                    if(p->children[j+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
+                        name = typeS;
+                    else
+                    {
+                        if(strcmp(typeS,"int")==0)
+                            type = TK_INT;
+                        else if(strcmp(typeS,"real")==0)
+                            type = TK_REAL;
+
+                        if(ast->type == -1 || ast->type == type)
+                            ast->type = type;
+                        else
+                            ast->type = TK_ERROR;
+                    }
+                }
+                else if(ast->children[j].term.tokenClass == TK_NUM && ast->nonterm!=funCallStmt)
+                {
+                    if(ast->type == -1 || ast->type == TK_INT)
+                        ast->type = TK_INT;
+                    else
+                        ast->type == TK_ERROR;
+                }
+                else if(ast->children[j].term.tokenClass == TK_RNUM && ast->nonterm!=funCallStmt)
+                {
+                    if(ast->type == -1 || ast->type == TK_REAL)
+                        ast->type = TK_REAL;
+                    else
+                        ast->type == TK_ERROR;
+                }
+
                 j++;
             }
         }
@@ -383,13 +446,20 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast)
             }
             ast->children[j].nonterm = p->children[i].nonterm;
             ast->children[j].isTerminal = 0;
-            createAbstractSyntaxTree(temp, &ast->children[j]);
+            ast->children[j].type = -1;
+            createAbstractSyntaxTree(temp, &ast->children[j], name);
+            
+            if(ast->type == -1)
+                ast->type = ast->children[j].type;
+            else if(ast->type != ast->children[j].type && ast->children[j].type!=-1)
+                ast->type = TK_ERROR;
+            
             if(ast->children[j].nochildren==0)
             {
                 ast->nochildren-=1;
                 j-=1;
             }
-            if(ast->children[j].nochildren==1)
+            else if(ast->children[j].nochildren==1)
             {
                 astree *temp = ast->children[j].children;
                 if(temp[0].isTerminal)
@@ -466,10 +536,10 @@ void printasTree(astree *p, FILE *outfile)
         else
             strcpy(n , "----");
         if(t->isTerminal)
-            fprintf(outfile,"\n%20s%12llu\t%15s\t\t%16s\t\t\t\t\t            %20s\t\tyes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
+            fprintf(outfile,"\n%20s%12llu\t%15s\t\t%16s\t\t\t\t\t            %20s\t\tyes\t",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
         else
         {
-            fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no",n,tokenName(t->nonterm),tokenName(p->nonterm));
+            fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no\t%10s",n,tokenName(t->nonterm),tokenName(p->nonterm),tokenName(t->type));
             printasTree(t, outfile);
         }
     }
