@@ -46,7 +46,7 @@ _main
 	endwhile
 	d4 <--- b5c6 / d5cb34567;
 	write(d4.maths);
-	write(d4.physics)
+	write(d4.physics);
 	write(d4.chemistry);
 	return;
 end
