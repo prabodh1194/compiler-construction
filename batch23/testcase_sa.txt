@@ -10,7 +10,7 @@ end
 _readMarks input parameter list[int b7]
 output parameter list [ record #marks b3c45, real b2c];
 	type int : b3c45;
-	type int : b5 global;
+	type int : b5 : global;
 	read(b3c45.maths);
 	read(b3c45.physics);
 	read(b3c45.chemistry);

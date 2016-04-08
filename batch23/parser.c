@@ -349,7 +349,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
      */
     int i, j, usefulChildrenCount = 0;
     terminalId type;
-    identifier_list *id;
+    identifier_list *id, *id1;
     char *typeS;
 
     for(i = 0; i < p->nochildren; i++)
@@ -382,18 +382,23 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 {
                     if(ast->children[j].term.tokenClass == TK_ID)
                     {
+                        id1 = search_global_identifier(global, ast->children[j].term.lexeme);
                         id = search_function_wise_identifier_hashtable(local, name, ast->children[j].term.lexeme);
-                        /*
-                        if(id==NULL)
-                            id = search_function_wise_identifier_hashtable(global, name, ast->children[j].term.lexeme);
-                            */
+
+                        if(id1!=NULL && id!=NULL)
+                        {
+                            printf("error: %llu %s declared in both global and local\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                            return;
+                        }
+                        if(id == NULL)
+                            id = id1;
                     }
                     else
                         id = search_function_wise_identifier_hashtable(record, name, ast->children[j].term.lexeme);
 
                     if(id == NULL)
                     {
-                        printf(" error:%llu %s doesn't exist\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                        printf("error: %llu %s doesn't exist\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
                         return;
                     }
 
@@ -427,6 +432,14 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     else
                         ast->type == TK_ERROR;
                 }
+                else if(ast->children[j].term.tokenClass == TK_FUNID && ast->nonterm == funCallStmt)
+                {
+                    if(strcmp(ast->children[j].term.lexeme, name)==0)
+                    {
+                        printf("error: %llu %s is a recursive function call\n", ast->children[j].term.line_num, name);
+                        return;
+                    }
+                }
 
                 j++;
             }
@@ -447,6 +460,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             ast->children[j].nonterm = p->children[i].nonterm;
             ast->children[j].isTerminal = 0;
             ast->children[j].type = -1;
+
+            if(ast->nonterm == returnStmt)
+            {
+                id1 = get_output_parameter_list(funcs, name);
+                id = getParams(p, id, name, 0);
+                if(compare_parameter_list_type(id, id1)==-1)
+                {
+                    printf("error: Type mismatch in return statement.\n");
+                    return;
+                }
+            }
+
             createAbstractSyntaxTree(temp, &ast->children[j], name);
             
             if(ast->type == -1)
@@ -475,6 +500,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
         i++;
     }
 }
+
 
 //print contents od parsetable
 void printParseTable(table t)

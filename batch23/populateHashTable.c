@@ -26,7 +26,11 @@ void populateFunctionST(parseTree *p, char *fname, int state)
         {
             fname = p->children[0].term.lexeme;
             if(state!=function)
-                add_function(funcs, fname, NULL, TK_FUNID);
+                if(add_function(funcs, fname, NULL, TK_FUNID)==-1)
+                {
+                    printf("error: %llu Function overloading not allowed\n",p->children[0].term.line_num);
+                    return;
+                }
             state = function;
         }
         else if(p->nonterm == input_par)
@@ -45,7 +49,8 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                     id->type = p->children[i-1].children[0].children[0].term.lexeme;
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
-                add_function_local_identifier_hashtable(local, fname, id);
+                if(add_function_local_identifier_hashtable(local, fname, id)==-1)
+                    printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
             }
             else if(!(!p->children[i].isTerminal && p->children[i].nonterm == remaining_list))
                 continue;
@@ -66,7 +71,8 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->next = NULL;
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
-                    add_function_local_identifier_hashtable(local, fname, id);
+                    if(add_function_local_identifier_hashtable(local, fname, id)==-1)
+                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                 }
                 else
                 {
@@ -89,10 +95,36 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->name = p->children[i].term.lexeme;
                 id->type = p->children[i-2].children[0].term.lexeme;
                 id->next = NULL;
-                add_function_local_identifier_hashtable(record, fname, id);
+                if(add_function_local_identifier_hashtable(record, fname, id)==-1)
+                    printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+
             }
             continue;
         }
+        if(p->children[i].term.tokenClass == TK_FUNID)
+        {
+            if(search_function_hashtable(funcs, p->children[i].term.lexeme)==NULL)
+            {
+                printf("error: %llu Function %s not defined\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                return;
+            }
+        }
         populateFunctionST(p->children+i, fname, state);
     }
+}
+
+identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int start)
+{
+    int i;
+    for(i=start;i<p->nochildren;i++) 
+    {
+        if(p->children[i].isTerminal)
+        {
+            if(p->children[i].term.tokenClass == TK_ID)
+                list = addIdentifier(list, p->children[i].term.lexeme, search_function_wise_identifier_hashtable(local, func, p->children[i].term.lexeme)->type);
+        }
+        else
+            list = getParams(p->children+i, list, func, 0);
+    }
+    return list;
 }
