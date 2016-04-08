@@ -1,3 +1,33 @@
+/*
+BATCH NUMBER: 23
+PRABODH AGARWAL 2012B1A7801P
+DEEPANSHU SINGH 2012B3A7593P
+
+
+symboltable.c: contains definintions of functions related to creation of symbol tables,
+               insetion in symbol tables and lookups in symbol tables.
+
+Descriptions of the following functions given before their definition in this file:
+
+function_hashtable* create_function_hashtable(int size);
+identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type);
+identifier_hashtable* create_identifier_hashtable(int size);
+function_wise_identifier_hashtable* create_function_local_identifier_hashtable(int size);
+void print_function_hashtable(function_hashtable* h);
+void add_identifier_to_hashtable(identifier_hashtable *h, char *name, char *type);
+int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type);
+int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist);
+int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag);
+function_node* search_function_hashtable(function_hashtable* h, char *fname);
+identifier_list* get_input_parameter_list(function_hashtable* h, char *fname);
+identifier_list* get_output_parameter_list(function_hashtable* h, char *fname);
+identifier_hashtable* get_function_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname);
+identifier_list* search_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname, char *iname);
+void print_function_hashtable(function_hashtable* h);
+void print_identifier_hashtable(identifier_hashtable *h);
+void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h);
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +37,8 @@
 #include "symboltable.h"
 #include "helper_functions.h"
 
+
+//Creates the symbol table for storing function name , its input parameter list and its output parameter list
 function_hashtable* create_function_hashtable(int size){
 	function_hashtable* h = NULL;
 	int i=0;
@@ -20,6 +52,8 @@ function_hashtable* create_function_hashtable(int size){
 	return h;
 }
 
+
+//Creates the symbol table for storing identifier name , its type, *****more to be added******
 identifier_hashtable* create_identifier_hashtable(int size){
 	identifier_hashtable* h = NULL;
 	int i=0;
@@ -33,6 +67,11 @@ identifier_hashtable* create_identifier_hashtable(int size){
 	return h;
 }
 
+/*
+ *Creates the local identifier symbol table which is hashtable of function names 
+ *where each function name in turn points to a hash table of type identifier_hashtable 
+ *containing the functions local identifiers in the form of a hash table
+*/
 function_wise_identifier_hashtable* create_function_local_identifier_hashtable(int size){
 	function_wise_identifier_hashtable* h = NULL;
 	int i=0;
@@ -46,66 +85,111 @@ function_wise_identifier_hashtable* create_function_local_identifier_hashtable(i
 	return h;
 }
 
+
+/*
+ *Creates a new identifier list
+ *Note: Following variables are of type identifier_list:
+ 		---> input_parameter_list of a function
+ 		---> output_parameter_list of a function
+ 		---> identifier_hashtable stores identifiers in the 
+ 		     form of identifier_list at hashed location
+*/
 identifier_list *create_identifier_list(char *name,char *type){
 	identifier_list *idlist;
 	idlist = addIdentifier(NULL,name,type);
 	return idlist;
 }
-identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
-    /* appends a new (name, type) pair to the end of idlist
-     * and returns a pointer to the new list
-     */
 
+
+/* ***************Change the description when adding more fields to identifier list**************
+ *inserts a new (name, type) pair to the beginning of identifier list
+ *and returns a pointer to the new list
+*/
+identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
     identifier_list *newPair = (identifier_list *)malloc(sizeof(identifier_list));
-    //newPair->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
-    //newPair->identifier.nameOfRecord = (char *)malloc((strlen(nameOfRecord) + 1) * sizeof(char));
-    //strcpy(newPair->identifier.nameOfRecord, nameOfRecord);
     newPair->name = name;
     newPair->type = type;
     newPair->next = idlist;
     idlist = newPair;
-
     return newPair;
 }
 
-void add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type){
+
+/*
+ * Wrapper function which ultimately inserts identifier in the identifier_hashtable at the hashed location
+*/
+int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type){
 	int index;
 	index = hash_function(name, h->size);
+	identifier_list* temp;
+	temp = h->table[index];
+	while(temp!=NULL){
+		if(strcmp(name,temp->name) == 0)
+			return -1;
+		temp = temp->next;
+	}
 	h->table[index] = addIdentifier(h->table[index], name, type);
 	
 }
 
-void add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
-	int index;
-	index = hash_function(fname, h->size);
-	if(h->table[index] == NULL){
+//Adds an identifier to function's local identifier symbol table
+int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
+	int index,flag;
+	index = hash_function(fname, h->size); //Hash value computed by hash function for the given function name
+	/*
+	  * The if condition will be executed when no function has been hashed at this location 
+	  * i.e. no entry for this function in the function's local identifier symbol table
+	*/
+	if(h->table[index] == NULL){ 
 		h->table[index] = (function_identifier_node *)malloc(sizeof(function_identifier_node));
         bzero(h->table[index],sizeof(function_identifier_node));
 		h->table[index]->fname = fname;
 		h->table[index]->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
-		add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type);
+		flag = add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type);
+		return flag;
 	}
+	/*
+		The else condition will be executed when a function already 
+		exists at the location specified by hash value i.e. index
+	*/
 	else{
 		function_identifier_node *new_entry, *temp;
-		temp = h->table[index];
-		while(temp != NULL && strcmp(temp->fname,fname)!=0){
-			temp = temp->next;
+		temp = h->table[index]; // temp now points to the location specified by hash value i.e. index
+		while(temp != NULL && strcmp(temp->fname,fname)!=0){ // searches for fname at the hashed location
+			temp = temp->next; // moves to next function in the chain at the hashed location
 		}
-		if(temp == NULL){
-			new_entry = (function_identifier_node*) malloc(sizeof(function_identifier_node));
+		/*
+		   The if condition will be executed when the given fname does not exist at the hashed location. 
+		   So create a function_identifier_node which will store the function name, its identifier_hash_table
+		   and a pointer to the next function_identifier_node in case of chaining.
+		*/
+		if(temp == NULL){ 
+			new_entry = (function_identifier_node*) malloc(sizeof(function_identifier_node)); //creates new function_identifier_node
         	bzero(new_entry, sizeof(function_identifier_node));
-			new_entry->fname=fname;
+			new_entry->fname = fname;
+			//create idenitifer_hashtable for the above function_identifier_node
 			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
-			add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
+			//inserts the given identifier in the local identifier symbol table of the function
+			flag = add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
+			if (flag == -1)
+				return flag;
+			//puts the newly created function_identifier_node at the head of the hashed location i.e. chaining
 			new_entry->next = h->table[index];
 			h->table[index] = new_entry;
+			return flag;
 		}
-		else
-			add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
+		/*
+			The else condition will be executed when the given function already exists at the hashed location.
+			So just add the identifier to that function's local identifier hash table.
+		*/
+		else{
+			flag = add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
+			return flag;
+		}
 	}	
 }
 
-//Used to insert Keyword and its token in the Hash Table i.e. Populating the hashtable
+//Used to insert the function name and its input and output parameter list in Function Symbol Table
 int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, int flag){
 	int index;
 	index = hash_function(fname,h->size);
@@ -182,7 +266,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 	identifier_list *idpos;
 	idh = get_function_identifier_hashtable(h,fname);
 	if(idh == NULL){
-		printf("Function's identifier hashtable not found. Check code for error");
+		printf("Function's/Record's identifier hashtable not found. Check code for error"); //Will remove this printf later
 		return NULL;
 	}
 	else{
@@ -194,7 +278,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 			idpos = idpos->next;
 		}
 		if(idpos == NULL){
-			printf("Identifier not found in the identifier hash table of function %s",fname);
+			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s",fname); //Will remove this printf later
 			return NULL;
 		}
 	}
