@@ -1,0 +1,54 @@
+_readMarks input parameter list[int b7]
+output parameter list [ record #marks b3c45, real b2c];
+	type int : b3c45;
+	read(b3c45.maths);
+	read(b3c45.physics);
+	read(b3c45.chemistry);
+	return [b3c45, b2c];
+end
+% Notice here that  your compiler recognizes the type definition of marks even before it is 
+% declared. This will be handled at the semantic analyzer phase.
+_readMarks input parameter list[int b7]
+output parameter list [ record #marks b3c45, real b2c];
+	type int : b3c4;
+	read(b3c45.maths);
+	[b3c45] <--- call _readMarks with parameters [b3c4];
+	[d4] <--- call _readMarks with parameters [b5];
+	return [b3c45, b3c4, bd43];
+end
+
+%The following program computes the average of marks of total d5cb34567  students
+_main 
+	record #marks
+		type real : maths; 
+		type real: physics; 
+		type real: chemistry;
+	endrecord;
+	% each field above represents the marks obtained in corresponding subject
+
+	type record #marks : d4;
+	% The variable d4 stores the marks of one student
+
+	type int : b5;
+	type int : d5cb34567;
+	type real : maths;
+	type record #marks : b5c6;
+	%The identifier b5c6 stores the sum of marks
+
+	b5 <--- 1;
+	read(d5cb34567);
+	b5c6.maths <--- 0.00;
+	b5c6.physics <--- 0.00;
+	b5c6.chemistry <---0.00;
+	while(b5<=d5cb34567)
+		[d4] <--- call _readMarks with parameters [b5];
+		b5c6 <--- b5c6 + d4; 
+		% above displays the sum of records
+		b5 <--- b5 +1;
+	endwhile
+	d4 <--- b5c6 / d5cb34567 + maths;
+	write(d4.maths);
+	write(d4.physics)
+	write(d4.chemistry);
+	return;
+end
