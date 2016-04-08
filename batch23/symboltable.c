@@ -247,7 +247,7 @@ int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, i
 	}
 }
 
-identifier_list* get_global_identifier(identifier_hash_table* h, char *name){
+identifier_list* get_global_identifier(identifier_hashtable* h, char *name){
 	int index;
 	identifier_list* temp;
 	index = hash_function(name, h->size);
@@ -402,7 +402,4 @@ int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
 		return 1;
 	else
 		return -1;
-
-
-
 }
