@@ -134,7 +134,7 @@ int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, c
 
 //Adds an identifier to function's local identifier symbol table
 int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
-	int index,flag;
+	int index,flag=0;
 	index = hash_function(fname, h->size); //Hash value computed by hash function for the given function name
 	/*
 	  * The if condition will be executed when no function has been hashed at this location 
@@ -160,7 +160,7 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 		}
 		/*
 		   The if condition will be executed when the given fname does not exist at the hashed location. 
-		   So create a function_identifier_node which will store the function name, its identifier_hash_table
+		   So create a function_identifier_node which will store the function name, its identifier_hashtable
 		   and a pointer to the next function_identifier_node in case of chaining.
 		*/
 		if(temp == NULL){ 
@@ -394,7 +394,8 @@ int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
 	identifier_list* temp1, *temp2;
 	temp1 = i1;
 	temp2 = i2;
-	while(temp1->type == temp2->type && (temp1 != NULL || temp2 != NULL)){
+	
+	while((temp1 != NULL || temp2 != NULL) && temp1->type == temp2->type){
 		temp1 = temp1->next;
 		temp2 = temp2->next;
 	}
