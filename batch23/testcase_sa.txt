@@ -36,12 +36,12 @@ _main
 
 	b5 <--- 1;
 	read(d5cb34567);
-	b5c6.maths <--- 0.00;
+	b5c6.maths <--- 0;
 	b5c6.physics <--- 0.00;
 	b5c6.chemistry <---0.00;
 	while(b5<=d5cb34567)
 		[d4,b5] <--- call _readMarks with parameters [b5];
-		b5c6 <--- b5c6 + d4; 
+		b5c6 <--- b5c6 + d4 + b5; 
 		% above displays the sum of records
 		b5 <--- b5 +1;
 	endwhile
