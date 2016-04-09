@@ -116,12 +116,22 @@ void populateFunctionST(parseTree *p, char *fname, int state)
 identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int start)
 {
     int i;
+    identifier_list *id;
+
     for(i=start;i<p->nochildren;i++) 
     {
         if(p->children[i].isTerminal)
         {
             if(p->children[i].term.tokenClass == TK_ID)
-                list = addIdentifier(list, p->children[i].term.lexeme, search_function_wise_identifier_hashtable(local, func, p->children[i].term.lexeme)->type);
+            {
+                id = search_function_wise_identifier_hashtable(local, func, p->children[i].term.lexeme);
+                if(id==NULL)
+                {
+                    printf("error: %llu %s isn't declared\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    return NULL;
+                }
+                list = addIdentifier(list, p->children[i].term.lexeme, id->type);
+            }
         }
         else
             list = getParams(p->children+i, list, func, 0);

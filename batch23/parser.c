@@ -403,7 +403,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     }
 
                     typeS = id->type;
-                    if(p->children[j+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
+                    if(p->children[i].term.tokenClass!=TK_FIELDID && p->children[i+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
                         name = typeS;
                     else
                     {
@@ -437,6 +437,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     if(strcmp(ast->children[j].term.lexeme, name)==0)
                     {
                         printf("error: %llu %s is a recursive function call\n", ast->children[j].term.line_num, name);
+                        return;
+                    }
+                    id = getParams(p->children, id, name, 0);
+                    if(compare_parameter_list_type(id, get_output_parameter_list(funcs, ast->children[j].term.lexeme))==-1)
+                    {
+                        printf("error: %llu Type mismatch in return statement\n",ast->children[j].term.line_num);
+                        return;
+                    }
+                    id1 = getParams(p->children+5, id1, name, 0);
+                    if(compare_parameter_list_type(id1, get_input_parameter_list(funcs, ast->children[j].term.lexeme))==-1)
+                    {
+                        printf("error: %llu Type mismatch in return statement\n",ast->children[j].term.line_num);
                         return;
                     }
                 }
