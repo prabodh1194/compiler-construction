@@ -78,7 +78,7 @@ typedef struct {
 
     char lexeme[MAX_LEXEME_SIZE];
     unsigned long long line_num;
-    unsigned long long col;
+    long col;
     terminalId tokenClass;
 } tokenInfo;
 

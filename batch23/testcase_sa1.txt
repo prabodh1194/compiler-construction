@@ -1,6 +1,6 @@
 _readMarks input parameter list[int b7]
 output parameter list [ record #marks b3c45, real b2c];
-    type int : b2c;
+    type int : b2c : global;
 	read(b3c45.maths);
 	read(b3c45.physics);
 	read(b3c45.chemistry);
@@ -29,7 +29,7 @@ _main
 		[d4] <--- call _readarks with parameters [b5];
 		b5c6 <--- b5c6 + d4 + b5; 
 		% above displays the sum of records
-		b5 <--- b5 +1;
+		b5 <--- b5 + 1 + 2.00;
 	endwhile
 	d4 <--- b5c6 / d5cb34567;
 	write(d4.maths);

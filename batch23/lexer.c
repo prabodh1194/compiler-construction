@@ -28,7 +28,7 @@ void printCode(char *file): prints the comment free code on the console.
 
 char buffer[MAX_BUFFER_SIZE]; // buffer to store the source code (in parts)
 unsigned long line_num = 1; // variable to calculate line number in the source code
-unsigned long col = 1; // variable to calculate the column (horizontal position) of a particular lexeme
+long col = 1; // variable to calculate the column (horizontal position) of a particular lexeme
 int pos_in_buffer; // variable used to denote till what position has the buffer been read
 int num_char_read = -1; //number of characters read by the fread function in getStream() function
 hashtable *h;
@@ -208,10 +208,15 @@ void getNextToken(FILE *fp, tokenInfo* t){
                     case '@': //hints at TK_OR
                         s = 201; //done
                         break;
-                    case ' ':
+                    case '\t':
+                        col = --col + 4;
+                        s = 225;
+                        pos_in_lexeme--; // to ignore the character in t->lexeme
+                        break;
                     case '\n':
                     case '\r':
-                    case '\t':
+                        line_num++;
+                    case ' ':
                     case '\f':
                     case '\v':
                     case 0:
@@ -344,8 +349,9 @@ void getNextToken(FILE *fp, tokenInfo* t){
                     default: // TK_ID found
                         pos_in_buffer--;
                         t->tokenClass = TK_ID;
-                        t->col = --col - strlen(t->lexeme);
+                        //printf("\ntest: %ld",col);
                         t->lexeme[pos_in_lexeme - 1] = '\0';
+                        t->col = --col - strlen(t->lexeme);
                         return;
                 }
                 break;
@@ -1008,6 +1014,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         pos_in_buffer--;
                         t->tokenClass = TK_RECORDID;
                         t->lexeme[pos_in_lexeme - 1] = '\0';
+                        t->col = --col - strlen(t->lexeme);
                         return;
                 }
                 break;
@@ -1015,7 +1022,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                 pos_in_lexeme = 0; // reset lexeme pointer to start of lexeme
                 switch(c) {
                     case '\n':
-                        line_num++;
+                        //line_num++;
                         col = 1;
                         break;
                     case '\r':
@@ -1024,6 +1031,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         break;
                     case '\t':
                         col = --col + 4;
+                        //printf("%ld", col);
                         break;
                     case ' ':
                     case '\f':
@@ -1035,6 +1043,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         strcpy(t->lexeme,"EOF");
                         return;
                     default: // return to start state
+                        //printf("line_num : %lu col : %ld char: %c",line_num,col,c);
                         pos_in_buffer--;
                         col--;
                         s = 0;
@@ -1057,7 +1066,7 @@ void printTok(char *file)
     getNextToken(fp,t);
     printf("Line  Col\t\tToken\tLexeme\n");
     printf("%4llu:",t->line_num);
-    printf("%3llu ",t->col);
+    printf("%3ld ",t->col);
     printf("%15s\t",tokenName(t->tokenClass));
     printf("%15s\n",t->lexeme);
 
@@ -1066,7 +1075,7 @@ void printTok(char *file)
         bzero(t,sizeof(tokenInfo));
         getNextToken(fp,t);
         printf("%4llu:",t->line_num);
-        printf("%3llu",t->col);
+        printf("%3ld",t->col);
         printf("%15s\t",tokenName(t->tokenClass));
         printf("%15s\n",t->lexeme);
     }
