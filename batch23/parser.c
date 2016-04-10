@@ -310,7 +310,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
                     }
                     else
                         compilation = 0;
-                        return -1;
+                    return -1;
                 }
             }
             //goTo contains the endstate of the block where an error is found,
@@ -354,6 +354,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
     terminalId type;
     identifier_list *id, *id1;
     char *typeS;
+    char message[200];
 
     for(i = 0; i < p->nochildren; i++)
         // all nonterminals are useful
@@ -448,16 +449,28 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         printf("error: %llu %s is a recursive function call\n", ast->children[j].term.line_num, name);
                         return;
                     }
+                    id = NULL;
                     id = getParams(p->children, id, name, 0);
-                    if(compare_parameter_list_type(id, get_output_parameter_list(funcs, ast->children[j].term.lexeme))==-1)
+                    bzero(message, 200);
+                    compare_parameter_list_type(id, get_input_parameter_list(funcs, ast->children[j].term.lexeme), message);
+                    if(message[0]!='O')
                     {
-                        printf("error: %llu Type mismatch in return statement\n",ast->children[j].term.line_num);
+                        if(message[0]=='N')
+                            printf("error: %llu Mismatch in number of input parameters\n",ast->children[j].term.line_num);
+                        else
+                            printf("error: %llu In input parameters %s\n",ast->children[j].term.line_num,message);
                         return;
                     }
+                    id1 = NULL;
                     id1 = getParams(p->children+5, id1, name, 0);
-                    if(compare_parameter_list_type(id1, get_input_parameter_list(funcs, ast->children[j].term.lexeme))==-1)
+                    bzero(message, 200);
+                    compare_parameter_list_type(id, get_output_parameter_list(funcs, ast->children[j].term.lexeme), message);
+                    if(message[0]!='O')
                     {
-                        printf("error: %llu Type mismatch in return statement\n",ast->children[j].term.line_num);
+                        if(message[0]=='N')
+                            printf("error: %llu Mismatch in number of output parameters\n",ast->children[j].term.line_num);
+                        else
+                            printf("error: %llu In output parameters %s\n",ast->children[j].term.line_num,message);
                         return;
                     }
                 }
@@ -484,17 +497,23 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
             if(ast->nonterm == returnStmt)
             {
+                id = id1 = NULL;
                 id1 = get_output_parameter_list(funcs, name);
                 id = getParams(p, id, name, 0);
-                if(compare_parameter_list_type(id, id1)==-1)
+                bzero(message, 200);
+                compare_parameter_list_type(id, id1, message);
+                if(message[0]!='O')
                 {
-                    printf("error: %llu Type mismatch in function return statement.\n",p->children[0].term.line_num);
+                    if(message[0]=='N')
+                        printf("error: %llu Mismatch in number of output parameters\n",ast->children[0].term.line_num);
+                    else
+                        printf("error: %llu In output parameters %s\n",ast->children[0].term.line_num,message);
                     return;
                 }
             }
 
             createAbstractSyntaxTree(temp, &ast->children[j], name);
-            
+
             if(ast->type == -1)
             {
                 ast->type = ast->children[j].type;
@@ -518,7 +537,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
             if(ast->type == TK_ERROR && (ast->nonterm == assignmentStmt || ast->nonterm == booleanExpression))
                 printf("error: %llu Type mismatch\n",ast->line_num);
-            
+
             if(ast->children[j].nochildren==0)
             {
                 ast->nochildren-=1;

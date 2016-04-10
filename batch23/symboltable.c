@@ -107,6 +107,7 @@ identifier_list *create_identifier_list(char *name,char *type){
 */
 identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
     identifier_list *newPair = (identifier_list *)malloc(sizeof(identifier_list));
+    bzero(newPair, sizeof(identifier_list));
     newPair->name = name;
     newPair->type = type;
     newPair->next = idlist;
