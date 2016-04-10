@@ -395,7 +395,7 @@ int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
 	temp1 = i1;
 	temp2 = i2;
 	
-	while((temp1 != NULL || temp2 != NULL) && temp1->type == temp2->type){
+	while(temp1 != NULL && temp2 != NULL && temp1->type == temp2->type){
 		temp1 = temp1->next;
 		temp2 = temp2->next;
 	}
