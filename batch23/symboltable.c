@@ -279,7 +279,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 	identifier_list *idpos;
 	idh = get_function_identifier_hashtable(h,fname);
 	if(idh == NULL){
-		printf("Function's/Record's identifier hashtable not found. Check code for error"); //Will remove this printf later
+		//printf("Function's/Record's identifier hashtable not found. Check code for error"); //Will remove this printf later
 		return NULL;
 	}
 	else{
@@ -291,7 +291,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 			idpos = idpos->next;
 		}
 		if(idpos == NULL){
-			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s %s\n",fname,iname); //Will remove this printf later
+			//printf("Identifier/Record(defintion) not found in the identifier hash table of function %s %s\n",fname,iname); //Will remove this printf later
 			return NULL;
 		}
 	}
