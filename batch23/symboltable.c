@@ -390,7 +390,7 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 	}
 }
 
-int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
+void compare_parameter_list_type(identifier_list* i1, identifier_list* i2, char* returnmsg){
 	identifier_list* temp1, *temp2;
 	temp1 = i1;
 	temp2 = i2;
@@ -400,7 +400,12 @@ int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
 		temp2 = temp2->next;
 	}
 	if(temp1 == NULL && temp2 == NULL)
-		return 1;
-	else
-		return -1;
+		sprintf(returnmsg, "OK");
+	else if(temp1 !=NULL && temp2 != NULL){
+		sprintf(returnmsg,"The type <%s> of variable <%s> returned does not match with the type <%s> of the formal output parameter <%s>",
+			i1->type,i1->name,i2->type,i2->name);
+	}
+	else{
+		sprintf(returnmsg,"N");
+	} 
 }
