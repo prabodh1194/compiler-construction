@@ -380,6 +380,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
                 if((ast->children[j].term.tokenClass == TK_ID || ast->children[j].term.tokenClass == TK_FIELDID) && ast->nonterm!=parameter_list && ast->nonterm!=declaration && ast->nonterm!=funCallStmt && ast->nonterm!=fieldDefinition)
                 {
+                    ast->line_num = ast->children[j].term.line_num;
                     if(ast->children[j].term.tokenClass == TK_ID)
                     {
                         id1 = search_global_identifier(global, ast->children[j].term.lexeme);
@@ -420,6 +421,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 }
                 else if(ast->children[j].term.tokenClass == TK_NUM && ast->nonterm!=funCallStmt)
                 {
+                    ast->line_num = ast->children[j].term.line_num;
                     if(ast->type == -1 || ast->type == TK_INT)
                         ast->type = TK_INT;
                     else
@@ -427,6 +429,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 }
                 else if(ast->children[j].term.tokenClass == TK_RNUM && ast->nonterm!=funCallStmt)
                 {
+                    ast->line_num = ast->children[j].term.line_num;
                     if(ast->type == -1 || ast->type == TK_REAL)
                         ast->type = TK_REAL;
                     else
@@ -479,7 +482,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 id = getParams(p, id, name, 0);
                 if(compare_parameter_list_type(id, id1)==-1)
                 {
-                    printf("error: Type mismatch in return statement.\n");
+                    printf("error: %llu Type mismatch in function return statement.\n",p->children[0].term.line_num);
                     return;
                 }
             }
@@ -487,9 +490,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             createAbstractSyntaxTree(temp, &ast->children[j], name);
             
             if(ast->type == -1)
+            {
                 ast->type = ast->children[j].type;
+                ast->line_num = ast->children[j].line_num;
+            }
             else if(ast->type != ast->children[j].type && ast->children[j].type!=-1)
+            {
                 ast->type = TK_ERROR;
+                ast->line_num = ast->children[j].line_num;
+            }
+
+            if(ast->type == TK_ERROR && (ast->nonterm == assignmentStmt || ast->nonterm == booleanExpression))
+                printf("error: %llu Type mismatch\n",ast->line_num);
             
             if(ast->children[j].nochildren==0)
             {

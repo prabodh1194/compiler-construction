@@ -1,10 +1,10 @@
 /*
-BATCH NUMBER: 23
-PRABODH AGARWAL 2012B1A7801P
-DEEPANSHU SINGH 2012B3A7593P
+   BATCH NUMBER: 23
+   PRABODH AGARWAL 2012B1A7801P
+   DEEPANSHU SINGH 2012B3A7593P
 
-parseDef.h: defines the variables and data structures used in parser.c
-*/
+   parseDef.h: defines the variables and data structures used in parser.c
+   */
 
 #ifndef PARSERDEF
 #define PARSERDEF
@@ -76,8 +76,8 @@ typedef enum{
 //Data Structure to store Parse Tree
 struct parseTree{
     union { //union used because a node can either be a non terminal or a terminal not both
-    nontermid nonterm;
-    tokenInfo term;
+        nontermid nonterm;
+        tokenInfo term;
     };
     short isTerminal; // whether the node is a terminal or not
     struct parseTree *children; // to store pointers to the children of the node
@@ -86,13 +86,14 @@ struct parseTree{
 
 struct astree{
     union { //union used because a node can either be a non terminal or a terminal not both
-    nontermid nonterm;
-    tokenInfo term;
+        nontermid nonterm;
+        tokenInfo term;
     };
     short isTerminal; // whether the node is a terminal or not
     struct astree *children; // to store pointers to the children of the node
     int nochildren; // number of children of a node
     int type; // used by ast for typechecking
+    unsigned long long line_num;
 };
 
 typedef struct parseTree parseTree;
