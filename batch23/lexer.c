@@ -1020,6 +1020,7 @@ void getNextToken(FILE *fp, tokenInfo* t){
                         break;
                     case '\r':
                         col = 1;
+                        line_num++;
                         break;
                     case '\t':
                         col = --col + 4;
