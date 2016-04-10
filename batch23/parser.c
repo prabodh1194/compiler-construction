@@ -182,7 +182,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
     //in case errorneous token is recieved, notify appropriately and get next token
     if(t->tokenClass == TK_ERROR)
     {
-        fprintf(stderr,"error: line %llu:%llu %s\n",t->line_num,t->col,t->lexeme);
+        fprintf(stderr,"error: line %llu:%ld %s\n",t->line_num,t->col,t->lexeme);
         printExpectedTokens(root->nonterm, tb);
         getNextToken(sourceCodeFile, t);
         compilation = 0;
@@ -196,7 +196,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         //case of lookahead mismatch
         if(root->term.tokenClass != t->tokenClass)
         {
-            fprintf(stderr, "error: line %llu:%llu The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, t->col, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
+            fprintf(stderr, "error: line %llu:%ld The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, t->col, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
             compilation = 0;
             return -2;
         }
@@ -224,7 +224,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         //given lookup
         if(ruleNo < 0)
         {
-            fprintf(stderr, "error: line %llu:%llu Found unexpected token %s for lexeme <%s>\n",t->line_num, t->col, tokenName(t->tokenClass), t->lexeme);
+            fprintf(stderr, "error: line %llu:%ld Found unexpected token %s for lexeme <%s>\n",t->line_num, t->col, tokenName(t->tokenClass), t->lexeme);
             printExpectedTokens(root->nonterm, tb);
             compilation = 0;
             return -1;
