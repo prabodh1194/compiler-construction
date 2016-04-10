@@ -13,9 +13,9 @@ output parameter list[record #rec d5d, record #rec d2d];
 
 
  [d5d.len, d2e.len]<--- call _swpints with parameters [d5b.len, d5c.len];
- [d5d,d2e]<--- call _swpints with parameters [d5b.height, d5c.height];
+ [d5d,d2d]<--- call _swpints with parameters [d5b.height, d5c.height];
 
-return [d2d, d2e];
+return [d2d, d5d];
 end
 
 _main 

@@ -291,7 +291,7 @@ identifier_list* search_function_wise_identifier_hashtable(function_wise_identif
 			idpos = idpos->next;
 		}
 		if(idpos == NULL){
-			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s\n",fname); //Will remove this printf later
+			printf("Identifier/Record(defintion) not found in the identifier hash table of function %s %s\n",fname,iname); //Will remove this printf later
 			return NULL;
 		}
 	}
@@ -395,7 +395,7 @@ int compare_parameter_list_type(identifier_list* i1, identifier_list* i2){
 	temp1 = i1;
 	temp2 = i2;
 	
-	while(temp1 != NULL && temp2 != NULL && temp1->type == temp2->type){
+	while(temp1 != NULL && temp2 != NULL && strcmp(temp1->type,temp2->type)==0){
 		temp1 = temp1->next;
 		temp2 = temp2->next;
 	}
