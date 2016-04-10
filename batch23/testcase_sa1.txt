@@ -27,11 +27,12 @@ _main
 	b5c6.chemistry <---0.00;
 	while(b5<=d5cb34567)
 		[d4] <--- call _readarks with parameters [b5];
-		b5c6 <--- b5c6 + d4 + b5; 
+		b5c6 <--- b5c6 + d4; 
 		% above displays the sum of records
 		b5 <--- b5 +1;
 	endwhile
-	d4 <--- b5c6 / d5cb34567;
+	d4 <--- b5c6 / 1;
+	d4 <--- b5c6 / d4;
 	write(d4.maths);
 	write(d4.physics);
 	write(d4.chemistry);

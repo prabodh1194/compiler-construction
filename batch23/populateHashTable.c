@@ -76,7 +76,8 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 }
                 else
                 {
-                    add_identifier_to_identifierhashtable(global, id->name, id->type);
+                    if(add_identifier_to_identifierhashtable(global, id->name, id->type)==-1)
+                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                 }
             }
             continue;
@@ -116,7 +117,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
 identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int start)
 {
     int i;
-    identifier_list *id;
+    identifier_list *id, *id1;
 
     for(i=start;i<p->nochildren;i++) 
     {
@@ -125,11 +126,19 @@ identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int
             if(p->children[i].term.tokenClass == TK_ID)
             {
                 id = search_function_wise_identifier_hashtable(local, func, p->children[i].term.lexeme);
-                if(id==NULL)
+                id1 = search_global_identifier(global, p->children[i].term.lexeme);
+                if(id==NULL && id1 == NULL)
                 {
                     printf("error: %llu %s isn't declared\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                     return NULL;
                 }
+                else if(id!=NULL && id1!=NULL)
+                {
+                    printf("error: %llu %s declared in both global and local\n", p->children[i].term.line_num, p->children[i].term.lexeme);
+                    return NULL;
+                }
+                else if(id == NULL)
+                    id = id1;
                 list = addIdentifier(list, p->children[i].term.lexeme, id->type);
             }
         }

@@ -243,7 +243,10 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 
             root->nochildren = nochildren;
             if(nochildren>0)
+            {
                 node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
+                bzero(root->children, sizeof(parseTree)*nochildren);
+            }
 
             for(i=0;i<nochildren;i++)
             {
@@ -361,6 +364,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
     ast->nochildren = usefulChildrenCount;
     ast->children = (astree *)malloc(ast->nochildren * sizeof(astree));
+    bzero(ast->children,usefulChildrenCount*sizeof(astree));
 
     i = 0, j = 0;
     while(i < p->nochildren) {
@@ -404,7 +408,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     }
 
                     typeS = id->type;
-                    if(p->children[i].term.tokenClass!=TK_FIELDID && p->children[i+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
+                    if(p->children[i].term.tokenClass!=TK_FIELDID && p->children[i+1].nochildren!=0 && p->children[i+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
                         name = typeS;
                     else
                     {
@@ -412,6 +416,8 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                             type = TK_INT;
                         else if(strcmp(typeS,"real")==0)
                             type = TK_REAL;
+                        else if(typeS[0]=='#')
+                            type = TK_RECORD;
 
                         if(ast->type == -1 || ast->type == type)
                             ast->type = type;
@@ -496,8 +502,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             }
             else if(ast->type != ast->children[j].type && ast->children[j].type!=-1)
             {
-                ast->type = TK_ERROR;
+                if(ast->nonterm == term && ast->type == TK_RECORD)
+                    ast->type = TK_RECORD;
+                else
+                    ast->type = TK_ERROR;
                 ast->line_num = ast->children[j].line_num;
+            }
+            else if(ast->nonterm == term && ast->type == TK_RECORD && ast->children[j].type!=-1)
+            {
+                if(ast->children[j].type == TK_RECORD)
+                    ast->type = TK_ERROR;
+                else
+                    ast->type = TK_RECORD;
             }
 
             if(ast->type == TK_ERROR && (ast->nonterm == assignmentStmt || ast->nonterm == booleanExpression))

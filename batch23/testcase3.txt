@@ -1,37 +1,36 @@
+_swpints
+input parameter list [int b2b, int b2c]   
+output parameter list[int c2b, int c2c]; 
 
-%Test Case 3
-%Following program computes an arithmetic expression 
+c2b<---b2c;
+c2c<---b2b;
+return [c2b, c2c]; 
+end 
 
-% The following function computes the function value for the given inputs 
-_computeFunctionValue input parameter list[real c3, int c4, int c5]
-output parameter list [real c6];
-	type real : d4cbcd5677;
-	type real : c4bbb;
-	c6 <--- 5000.79;
-	d4cbcd5677<--- ((c3 + 2.00*c4)-(c5-5.00))/ 4.00;
-	c4bbb <--- ((d4cbcd5677- 2.35)*(2345-234*8))+5*c3;
-	if((~c4bbb == 0) &&& (c4bbb > 78.56)) 
-	then
-		c6<--- d4cbcd5677/c4bbb;
-	else
-		write(c4bbb);
-	endif
+_swprecs
+input parameter list [record #rec d5b, record #rec d2c]   
+output parameter list[record #rec d5d, record #rec d2d]; 
 
-	return [c6];
+
+ [d5d.len, d2e.len]<--- call _swpints with parameters [d5b.len, d5c.len];
+ [d5d,d2e]<--- call _swpints with parameters [d5b.height, d5c.height];
+
+return [d2d, d2e];
 end
 
-
-%The following program computes the function value for the user defined input
 _main 
-	type int : b5;
-	type int : d5cb34567;
-	type int :  b3b444 : global;
-	type real: c3;
-	b5 <--- 1;
-	read(d5cb34567);
-	read(b3b444);
-
-	[c3] <--- call _computeFunctionValue with parameters [b5, d5cb34567, b3b444];
-	write(c3);
-	return;
+  record  #rec 
+    type int : len; 
+    type int : height; 
+  endrecord; 
+type record #rec : b2; 
+type record #rec : d5b: global; 
+ 
+b2.len<---5;
+b2.height <---7;
+d5b.len <---10.56;
+d5b.height <---20;
+[b2, c2]<--- call _swprecs with parameters [b2,d5b]; 
+print(b2);
+print(c2);
 end
