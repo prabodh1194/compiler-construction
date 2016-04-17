@@ -4,6 +4,7 @@
 struct identifier_list{
 	char *name;
 	char *type;
+    int offset;
 	struct identifier_list* next;
 };
 
@@ -26,11 +27,14 @@ typedef struct function_hashtable function_hashtable;
 //Data structure for storing Identifiers
 struct identifier_hashtable{
 	int size;
+    int offset;
 	struct identifier_list** table;
 };
 
 struct function_identifier_node{
     char *fname;
+    int offset;
+    int size;
     struct identifier_hashtable* id_hashtable;
     struct function_identifier_node *next;
 };

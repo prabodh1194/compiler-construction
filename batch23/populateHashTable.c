@@ -76,7 +76,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 }
                 else
                 {
-                    if(add_identifier_to_identifierhashtable(global, id->name, id->type)==-1, h->size)
+                    if(add_identifier_to_identifierhashtable(global, id->name, id->type, global->offset)==-1)
                         printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                 }
             }
@@ -139,7 +139,7 @@ identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int
                 }
                 else if(id == NULL)
                     id = id1;
-                list = addIdentifier(list, p->children[i].term.lexeme, id->type);
+                list = add_element_to_list(list, p->children[i].term.lexeme, id->type);
             }
         }
         else
