@@ -12,17 +12,20 @@ output parameter list[real d3];
 		read( c3bd);
 		d3 <--- d3 + c3bd;
 	endwhile
-	return [b5b567];
+	return [c3bd];
 end
 
 _main
 	type real :c4bd56;
 	type int :c2;
-	type int : b5b567:global;
+    type int :b3;
 	b3 <--- 7;
 	read( c2);
-	[c4bd56]<--- call _sumN with parameters [c2];
-	write(c4bd56);
+    b3 <--- c2+7+(2+b3)*b3;
+	%[c4bd56]<--- call _sumN with parameters [c2];
+	write(b3);
+    write(c2);
+    write(b3);
     b5b567 <--- 1;
 	return;
 end

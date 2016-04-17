@@ -16,6 +16,7 @@
 #include "symboltableDef.h"
 #include "symboltable.h"
 #include "populateHashTable.h"
+#include "codegen.h"
 
 extern short compilation; //compilation flag
 int main(int argc, char **args)
@@ -63,7 +64,7 @@ int main(int argc, char **args)
 
     do
     {
-        printf("1. Print comment free code\n2. Print token list\n3. Syntactic analysis of code\n4. Print parse tree\n5. Print FIRST and FOLLOW sets\n6. Generate AST\n7. Populate ST\n8. Exit\n(1/2/3/4/5/6/7/8)\t");
+        printf("1. Print comment free code\n2. Print token list\n3. Syntactic analysis of code\n4. Print parse tree\n5. Print FIRST and FOLLOW sets\n6. Generate AST\n7. Populate ST\n8. Generate ASM\n9. Exit\n(1/2/3/4/5/6/7/8/9)\t");
         scanf("%d",&choice);
         switch(choice)
         {
@@ -121,16 +122,18 @@ int main(int argc, char **args)
                 print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
                 print_function_wise_identifier_hashtable(record);
-                print_identifier_hashtable(global, NULL);
+                print_identifier_hashtable(global);
                 break;
             case 8:
+                genCode(ast, fopen(args[3],"w"));
+            case 9:
                 break;
             default:
                 printf("Wrong choice\n");
                 break;
         }
     }
-    while(choice!=8);
+    while(choice!=9);
 
     return 0;
 }
