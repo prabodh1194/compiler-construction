@@ -46,7 +46,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 if(p->children[i-1].children[0].nonterm == constructedDatatype)
                 {
                     id->type = p->children[i-1].children[0].children[1].term.lexeme;
-                    offset = get_record_size(record, id->name);
+                    offset = get_record_size(record, id->type);
                 }
                 else
                 {
@@ -74,7 +74,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 if(p->children[i-2].children[0].nonterm == constructedDatatype)
                 {
                     id->type = p->children[i-2].children[0].children[1].term.lexeme;
-                    offset = get_record_size(record, id->name);
+                    offset = get_record_size(record, id->type);
                 }
                 else
                 {

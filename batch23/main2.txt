@@ -5,7 +5,7 @@ _main
 	read(b3c45);
 	read(b2d6);
 	d6<--- 100;
-	if(b3c45 <= b2d6)
+	if(b3c45 <= b2d6) then
 		d6<---d6+100;
 	else
 		d6<---d6-200;
