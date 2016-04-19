@@ -28,7 +28,10 @@ const char *readProc = "\
                         \n\
                         mov ebx, inputbuf\n\
                         mov ecx, eax\n\
+                        sub ecx, 1\n\
                         mov eax, 0\n\
+                        mov edx, 0\n\
+                        mov bp, 10\n\
                         \n\
                         mov si, 0\n\
                         \n\
@@ -39,13 +42,13 @@ const char *readProc = "\
                         dec cx\n\
                         jmp _getdigitfrombuf\n\
                         _startgetting:\n\
-                        dec bx\n\
+                        dec ebx\n\
                         _getdigitfrombuf:\n\
-                        inc bx\n\
-                        mov dx, 10\n\
+                        inc ebx\n\
+                        mov dx,10\n\
                         mul dx\n\
                         mov dh, 0\n\
-                        mov dl, [bx]\n\
+                        mov dl, [ebx]\n\
                         sub dx, 48\n\
                         add ax, dx\n\
                         \n\
@@ -58,12 +61,11 @@ const char *readProc = "\
                         \n\
                         _readend:\n\
                         pop si\n\
-                        ret\n\
-                        _read endp";
+                        ret\n";
 
 // code for the write function
 const char *writeProc = "\
-                         _write proc\n\
+                         _write:\n\
                          mov bx, ax\n\
                          and bx, 8000h\n\
                          cmp bx, 0\n\
@@ -80,38 +82,42 @@ const char *writeProc = "\
                          \n\
                          _writesignhandled:\n\
                          mov ecx, 0\n\
-                         mov ebx, 10\n\
+                         mov ebx, 0\n\
                          mov bx, 10\n\
                          mov esi, inputbuf\n\
+                         add esi, buflen\n\
                          mov edx, 0\n\
                          _getdigitfromnum:\n\
                          div bx\n\
-                         add ax, 48\n\
-                         mov [esi], al\n\
-                         inc esi\n\
+                         add dx, 48\n\
+                         dec esi\n\
+                         mov [esi], dl\n\
+                         mov dx, 0\n\
                          inc cx\n\
-                         mov ax, dx\n\
                          \n\
                          cmp ax, bx\n\
                          jg _getdigitfromnum\n\
                          \n\
-                         mov ah, 02h\n\
+                         add ax, 48\n\
+                         dec esi\n\
+                         mov [esi], al\n\
+                         inc cx\n\
                          \n\
                          _writedigit:\n\
                          mov edx,ecx\n\
-                         mov ecx,inpbuffer\n\
+                         mov ecx,esi\n\
                          mov eax,sys_write\n\
                          mov ebx,stdout\n\
                          int 80h\n\
-                         ret\n\
-                         _write endp";
+                         ret\n";
 
 int ifNo = 0;
 char ifNoBuf[11];
 int loopNo = 0;
 char loopNoBuf[11];
 
-void genCode(parseTree *p, FILE *out) {
+void genCode(astree *p, FILE *out) {
+    int i;
     if(!p->isTerminal) {
         switch(p->nonterm) {
             case program:
@@ -128,7 +134,7 @@ void genCode(parseTree *p, FILE *out) {
                         minuslen       equ     $-minus\n\
                         \n\
                         SECTION         .bss\n\
-                        inpbuffer       resb    6\n\
+                        inputbuf:       resb    6\n\
                         buflen          equ     $-inputbuf\n\
                         \n\
                         SECTION         .text\n\
@@ -140,27 +146,31 @@ void genCode(parseTree *p, FILE *out) {
                         \n\
                         %s\n", readProc, writeProc, exitProc);
                 genCode(p->children+1, out);
-                genCode(p->children[1].children[1].children+1, out);
-                fprintf(out, "\njmp Exit");
+                fprintf(out, "\njmp Exit\n");
+                fprintf(out,"SECTION .bss\n");
+                if(p->children[1].children[0].children[0].nonterm == declarations, out)
+                    genCode(p->children[1].children[0].children, out);
+                else if(p->children[1].children[0].children[1].nonterm == declarations, out)
+                    genCode(p->children[1].children[0].children+1, out);
                 break;
 
             case mainFunctions:
                 //fprintf(out, "main proc\n\nmov ax, seg inputbuf\nmov ds, ax\n\n");
-                genCode(p->children+1, out);
+                genCode(p->children, out);
                 break;
 
             case declarations:
                 if(p->nochildren != 1) {
-                    fprintf(out,"SECTION .bss\n");
                     genCode(p->children, out);
                     genCode(p->children+1, out);
                 }
+                else
+                    genCode(p->children, out);
                 break;
 
             case declaration:
-                if(p->children[0].isTerminal && p->children[0].term.tokenClass == TK_ID) {
-                    fprintf(out, "%s resw 1\n",p->children[0].term.lexeme);
-                }
+                if(p->children[1].isTerminal && p->children[1].term.tokenClass == TK_ID) 
+                    fprintf(out, "%s: resw 1\n",p->children[1].term.lexeme);
                 /*
                 else {
                     function_hashtable *result, *iter;
@@ -174,7 +184,11 @@ void genCode(parseTree *p, FILE *out) {
                 break;
 
             case stmts:
-                genCode(p->children+2, out);
+                fprintf(out, "_start:\n");
+                for(i = 0; i < p->nochildren; i++)
+                    if(p->children[i].nonterm == otherStmts)
+                        break;
+                genCode(p->children+i, out);
                 //fprintf(out, "mov ah, 4ch\nmov al, 0\nint 21h\n\nmain endp\n\n");
                 break;
 
@@ -191,18 +205,15 @@ void genCode(parseTree *p, FILE *out) {
                 break;
 
             case assignmentStmt:
-                genCode(p->children+2, out);
-                fprintf(out, "mov ");
-                genCode(p->children, out);
-                fprintf(out, ", ax\n\n");
+                for (i = 2; i < p->nochildren; i++) 
+                {
+                    genCode(p->children+i, out);
+                }
+                fprintf(out, "mov [%s], ax\n\n",p->children[0].term.lexeme);
                 break;
 
             case singleOrRecId:
-                genCode(p->children, out);
-                if(p->children[1].nochildren != 1) {
-                    fprintf(out, "_");
-                    genCode(p->children[1].children+1, out);
-                }
+                    fprintf(out, "mov %s_%s,ax\n",p->children[0].term.lexeme, p->children[1].term.lexeme);
                 break;
 
             case conditionalStmt:
@@ -229,13 +240,21 @@ void genCode(parseTree *p, FILE *out) {
             case ioStmt:
                 if(p->children[0].term.tokenClass == TK_READ) {
                     fprintf(out, "call _read\n");
-                    fprintf(out, "mov ");
-                    genCode(p->children+2, out);
-                    fprintf(out, ", ax\n\n");
+                    if(p->children[1].term.tokenClass == TK_ID)
+                        fprintf(out,"mov [%s],ax\n",p->children[1].term.lexeme);
+                    else
+                        genCode(p->children+1, out);
                 }
                 else {
-                    genCode(&p->children[2], out);
-                    fprintf(out, "\ncall _write\n\n");
+                    if(p->children[1].term.tokenClass == TK_ID)
+                    {
+                        genCode(p->children+1, out);
+                        fprintf(out, "call _write\n\n");
+                    }
+                    else
+                    {
+                        fprintf(out, "call _write\n\n");
+                    }
                 }
                 break;
 
@@ -264,11 +283,6 @@ void genCode(parseTree *p, FILE *out) {
                 if(p->children[1].nochildren != 1) {
                     fprintf(out, "push ax\n");
                     genCode(p->children+1, out);
-                    fprintf(out, "mov bx, ax\npop ax\n");
-                    if(p->children[1].children[0].children[0].term.tokenClass == TK_PLUS)
-                        fprintf(out, "add ax, bx\n\n");
-                    else
-                        fprintf(out, "sub ax, bx\n\n");
                 }
                 break;
 
@@ -277,11 +291,13 @@ void genCode(parseTree *p, FILE *out) {
                 if(p->children[1].nochildren != 1) {
                     fprintf(out, "push ax\n");
                     genCode(p->children+1, out);
+                    /*
                     fprintf(out, "mov bx, ax\npop ax\n");
                     if(p->children[1].children[0].children[0].term.tokenClass == TK_MUL)
                         fprintf(out, "mul bx\n");
                     else
                         fprintf(out, "mov dx, 0\ndiv bx\n");
+                        */
                 }
                 break;
 
@@ -293,16 +309,25 @@ void genCode(parseTree *p, FILE *out) {
                 break;
 
             case termPrime:
-                if(p->nochildren != 1) {
+                if(p->nochildren == 2)
+                {
+                    fprintf(out,"mov bx, [%s]\n",p->children[1].term.lexeme);
+                    fprintf(out,"pop ax\n");
+                    if(p->children[0].term.tokenClass == TK_MUL)
+                        fprintf(out,"mul bx\n");
+                    else
+                        fprintf(out,"div bx\n");
+                }
+                else if(p->nochildren == 3) {
                     genCode(p->children+1, out);
                     if(p->children[2].nochildren != 1) {
                         fprintf(out, "push ax\n");
                         genCode(p->children+2, out);
                         fprintf(out, "mov bx, ax\npop ax\n");
                         if(p->children[2].children[0].children[0].term.tokenClass == TK_MUL)
-                            fprintf(out, "mul ax, bx\n");
+                            fprintf(out, "mul bx\n");
                         else
-                            fprintf(out, "div ax, bx\n");
+                            fprintf(out, "div bx\n");
                     }
                 }
                 break;
@@ -311,10 +336,13 @@ void genCode(parseTree *p, FILE *out) {
                 if(p->nochildren != 1) {
                     genCode(p->children+1, out);
                     if(p->children[2].nochildren != 1) {
-                        fprintf(out, "push ax\n");
-                        genCode(p->children+2, out);
+                        if(p->nochildren == 3)
+                        {
+                            fprintf(out, "push ax\n");
+                            genCode(p->children+2, out);
+                        }
                         fprintf(out, "mov bx, ax\npop ax\n");
-                        if(p->children[2].children[0].children[0].term.tokenClass == TK_PLUS)
+                        if(p->children[0].term.tokenClass == TK_PLUS)
                             fprintf(out, "add ax, bx\n");
                         else
                             fprintf(out, "sub ax, bx\n");
@@ -397,6 +425,17 @@ void genCode(parseTree *p, FILE *out) {
     }
 
     else
-        fprintf(out, "%s", p->term.lexeme);
+    {
+        switch(p->term.tokenClass)
+        {
+            case TK_ID:
+                fprintf(out,"mov ax,[%s]\n",p->term.lexeme);
+                break;
+            case TK_RNUM:
+            case TK_NUM:
+                fprintf(out,"mov ax,%s\n",p->term.lexeme);
+                break;
+        }
+    }
 
 }

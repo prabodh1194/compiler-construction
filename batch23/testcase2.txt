@@ -36,7 +36,6 @@ _main
 
 	type int : b5;
 	type int : d5cb34567;
-	type real : b5;
 	type record #marks : b5c6;
 	%The identifier b5c6 stores the sum of marks
 
@@ -46,11 +45,11 @@ _main
 	b5c6.physics <--- 0.00;
 	b5c6.chemistry <---0.00;
 	while(b5<=d5cb34567)
-		[d4] <--- call _readMarks with parameters [b5];
-		[ b5c6 ] <--- call _addRecords with parameters [b5c6]; 
+		%[d4] <--- call _readMarks with parameters [b5];
+		%[ b5c6 ] <--- call _addRecords with parameters [b5c6]; 
 		% above displays the sum of records
-		b5 <--- b5 +1;
-	endwhile;
+		b5 <--- b5+1;
+	endwhile
 	d4 <--- b5c6 / d5cb34567;
 	write(d4.maths);
 	write(d4.physics);
