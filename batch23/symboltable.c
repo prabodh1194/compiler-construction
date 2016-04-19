@@ -431,8 +431,8 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname){
 			//printf("\t\tIdentifier Name: %s", current_pointer->name);
 			//printf("\t\tType: %s\n", current_pointer->type);
 			printf("%23s", current_pointer->name);
-			printf("%20s", current_pointer->type);
-			printf("%20s", fname);
+			printf("%23s", current_pointer->type);
+			printf("%23s", fname);
 			printf("%15d\n", current_pointer->offset);
 			//record implementation to be done
 			current_pointer = current_pointer->next;
