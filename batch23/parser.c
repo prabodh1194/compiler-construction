@@ -552,6 +552,9 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     ast->children[j].term.tokenClass = temp->term.tokenClass;
                     strcpy(ast->children[j].term.lexeme, temp->term.lexeme);
                     ast->children[j].term.line_num = temp->term.line_num;
+                    ast->children[j].nochildren = 0;
+                    ast->children[j].children = NULL;
+                    free(temp);
                 }
             }
             j++;

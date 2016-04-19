@@ -39,20 +39,32 @@ _main
 	type record #marks : b5c6;
 	%The identifier b5c6 stores the sum of marks
 
+    d4 <--- d4+d4;
+    b5 <--- d5cb34567;
 	b5 <--- 1;
 	read(d5cb34567);
 	b5c6.maths <--- 0.00;
 	b5c6.physics <--- 0.00;
 	b5c6.chemistry <---0.00;
-	while(b5<=d5cb34567)
+	while((b5<=9) &&& (1==1))
 		%[d4] <--- call _readMarks with parameters [b5];
 		%[ b5c6 ] <--- call _addRecords with parameters [b5c6]; 
 		% above displays the sum of records
-		b5 <--- b5+1;
+
+        if(b5 <= 1) then
+            b5 <--- b5+1;
+        else
+            b5 <--- b5+2;
+        endif
+
 	endwhile
+
+    write(b5);
+    write(b5c6);
+
 	d4 <--- b5c6 / d5cb34567;
-	write(d4.maths);
-	write(d4.physics);
-	write(d4.chemistry);
+	%write(d4.maths);
+	%write(d4.physics);
+	%write(d4.chemistry);
 	return;
 end

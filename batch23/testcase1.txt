@@ -21,7 +21,7 @@ _main
     type int :b3;
 	b3 <--- 7;
 	read( c2);
-    b3 <--- c2+7+(2+b3)*b3;
+    b3 <--- c2+7;
 	%[c4bd56]<--- call _sumN with parameters [c2];
 	write(b3);
     write(c2);
