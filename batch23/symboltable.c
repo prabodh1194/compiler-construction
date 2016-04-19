@@ -430,10 +430,10 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname){
 		while(current_pointer != NULL){
 			//printf("\t\tIdentifier Name: %s", current_pointer->name);
 			//printf("\t\tType: %s\n", current_pointer->type);
-			printf("%20s", current_pointer->name);
+			printf("%23s", current_pointer->name);
 			printf("%20s", current_pointer->type);
 			printf("%20s", fname);
-			printf("%10d\n", current_pointer->offset);
+			printf("%15d\n", current_pointer->offset);
 			//record implementation to be done
 			current_pointer = current_pointer->next;
 		}
@@ -451,7 +451,7 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 
 		while(current_pointer != NULL){
 			//printf("%s \nCurrent Function Scope: ",current_pointer->fname);
-			printf("%d\n", current_pointer->size);
+			//printf("%d\n", current_pointer->size);
 			current_identifier_hashtable = current_pointer->id_hashtable;
 			print_identifier_hashtable(current_identifier_hashtable, current_pointer->fname);
 			current_pointer = current_pointer->next;
