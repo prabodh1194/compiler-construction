@@ -342,6 +342,10 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 }
 
 //construct an AST by removing useless nodes from the parse tree
+
+identifier_list *whileList = NULL;
+short whileState = 0, isUpdate = 0;
+
 void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 {
     /* recursively constructs the abstract syntax tree
@@ -398,6 +402,22 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         }
                         if(id == NULL)
                             id = id1;
+                        if(whileState == 1 && id!=NULL)
+                            whileList = addIdentifier(whileList, id->name, id->type, 0);
+                        if(i == 0 && !isUpdate && whileList!=NULL && p->nonterm==singleOrRecId)
+                        {
+                            identifier_list *temp;
+                            temp = whileList;
+                            while(temp!=NULL)
+                            {
+                                if(strcmp(temp->name, id->name)==0)
+                                {
+                                    isUpdate = 1;
+                                    break;
+                                }
+                                temp = temp->next;
+                            }
+                        }
                     }
                     else
                         id = search_function_wise_identifier_hashtable(record, name, ast->children[j].term.lexeme);
@@ -511,9 +531,21 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     return;
                 }
             }
+            else if(ast->nonterm == iterativeStmt)
+                whileState = 1;
+            else if(whileState && ast->nonterm == stmt)
+                whileState = 0;
 
             createAbstractSyntaxTree(temp, &ast->children[j], name);
 
+            if(ast->children[i].nonterm == iterativeStmt && whileState)
+            {
+                if(!isUpdate)
+                    printf("error: While statement is not getting updated\n");
+                isUpdate = 0;
+                whileList = NULL;
+                whileState = 0;
+            }
             if(ast->type == -1)
             {
                 ast->type = ast->children[j].type;

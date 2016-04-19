@@ -118,6 +118,7 @@ int main(int argc, char **args)
                 printasTree(ast, outfile);
                 break;
             case 7:
+                populateGlobalRecords(tree, NULL, -1);
                 populateFunctionST(tree, NULL,-1);
                 print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);

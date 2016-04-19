@@ -39,13 +39,13 @@ const char *readProc = "\
                         \n\
                         mov dl, [ebx]\n\
                         cmp dl, 45\n\
-                        jne _startgetting\n\
+                        jne _getstring\n\
                         mov si, 1\n\
                         dec cx\n\
-                        jmp _getdigitfrombuf\n\
-                        _startgetting:\n\
+                        jmp _getdigitfromstr\n\
+                        _getstring:\n\
                         dec ebx\n\
-                        _getdigitfrombuf:\n\
+                        _getdigitfromstr:\n\
                         inc ebx\n\
                         mov dx,10\n\
                         mul dx\n\
@@ -54,7 +54,7 @@ const char *readProc = "\
                         sub dx, 48\n\
                         add ax, dx\n\
                         \n\
-                        loop _getdigitfrombuf\n\
+                        loop _getdigitfromstr\n\
                         \n\
                         cmp si, 1\n\
                         jne _readend\n\
@@ -71,7 +71,7 @@ const char *writeProc = "\
                          mov bx, ax\n\
                          and bx, 8000h\n\
                          cmp bx, 0\n\
-                         je _writesignhandled\n\
+                         je _writebuf\n\
                          not ax\n\
                          add ax, 1\n\
                          push ax\n\
@@ -82,14 +82,14 @@ const char *writeProc = "\
                          int 80h\n\
                          pop ax\n\
                          \n\
-                         _writesignhandled:\n\
+                         _writebuf:\n\
                          mov ecx, 0\n\
                          mov ebx, 0\n\
                          mov bx, 10\n\
                          mov esi, inputbuf\n\
                          add esi, buflen\n\
                          mov edx, 0\n\
-                         _getdigitfromnum:\n\
+                         _digitfromnum:\n\
                          div bx\n\
                          add dx, 48\n\
                          dec esi\n\
@@ -98,14 +98,13 @@ const char *writeProc = "\
                          inc cx\n\
                          \n\
                          cmp ax, bx\n\
-                         jge _getdigitfromnum\n\
+                         jge _digitfromnum\n\
                          \n\
                          add ax, 48\n\
                          dec esi\n\
                          mov [esi], al\n\
                          inc cx\n\
                          \n\
-                         _writedigit:\n\
                          mov edx,ecx\n\
                          mov ecx,esi\n\
                          mov eax,sys_write\n\

@@ -7,12 +7,74 @@
 #include "populateHashTable.h"
 #include <string.h>
 
+void populateGlobalRecords(parseTree *p, char *rname, int state)
+{
+    int i, nochildren = p->nochildren, offset;
+    identifier_list *id;
+
+    for (i = 0; i < nochildren; i++) 
+    {
+        offset = 4;
+        if(p->nonterm == declarations)
+            state = declarations;
+        if(p->nonterm == declaration && state == declarations)
+        {
+            if(p->children[i].term.tokenClass == TK_ID)
+            {
+                id = (identifier_list *)malloc(sizeof(identifier_list));
+                id->name = p->children[i].term.lexeme;
+                if(p->children[i-2].children[0].nonterm == constructedDatatype)
+                {
+                    id->type = p->children[i-2].children[0].children[1].term.lexeme;
+                    offset = get_record_size(record, id->type);
+                }
+                else
+                {
+                    id->type = p->children[i-2].children[0].children[0].term.lexeme;
+                    if(p->children[i-2].children[0].children[0].term.tokenClass == TK_INT)
+                        offset = 2;
+                }
+                id->next = NULL;
+                if(p->children[i+1].children[0].term.tokenClass!=eps)
+                {
+                    if(add_identifier_to_identifierhashtable(global, id->name, id->type, global->offset)==-1)
+                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                }
+            }
+        }
+
+        if(p->nonterm == typeDefinition)
+        {
+            rname = p->children[1].term.lexeme;
+            state = typeDefinition;
+        }
+        else if(p->nonterm == fieldDefinition && state == typeDefinition)
+        {
+            if(p->children[i].term.tokenClass == TK_FIELDID)
+            {
+                id = (identifier_list *)malloc(sizeof(identifier_list));
+                id->name = p->children[i].term.lexeme;
+                id->type = p->children[i-2].children[0].term.lexeme;
+                id->next = NULL;
+                if(p->children[i-2].children[0].term.tokenClass == TK_INT)
+                    offset = 2;
+                if(add_function_local_identifier_hashtable(record, rname, id, offset)==-1)
+                    printf("error: %llu Field identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+
+            }
+            continue;
+        }
+        populateGlobalRecords(p->children+i, rname, state);
+    }
+}
+
 void populateFunctionST(parseTree *p, char *fname, int state)
 {
     int i, nochildren = p->nochildren, offset = 4;
     identifier_list *id;
     for(i=0;i<nochildren;i++)
     {
+        offset = 4;
         if(p->term.tokenClass == TK_SEM)
             state = -1;
 
@@ -56,7 +118,9 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 }
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
-                if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
+                if(search_global_identifier(global, id->name)!=NULL)
+                    printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
             }
             else if(!(!p->children[i].isTerminal && p->children[i].nonterm == remaining_list))
@@ -85,39 +149,15 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->next = NULL;
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
-                    if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
-                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-                }
-                else
-                {
-                    if(add_identifier_to_identifierhashtable(global, id->name, id->type, global->offset)==-1)
-                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-                }
-            }
-            continue;
-        }
-
-        if(p->nonterm == typeDefinition)
-        {
-            state = TK_RECORD;
-            fname = p->children[1].term.lexeme;
-        }
-        else if(p->nonterm == fieldDefinition && state!=-1)
-        {
-            if(p->children[i].term.tokenClass == TK_FIELDID)
-            {
-                id = (identifier_list *)malloc(sizeof(identifier_list));
-                id->name = p->children[i].term.lexeme;
-                id->type = p->children[i-2].children[0].term.lexeme;
-                id->next = NULL;
-                if(p->children[i-2].children[0].term.tokenClass == TK_INT)
-                    offset = 2;
-                if(add_function_local_identifier_hashtable(record, fname, id, offset)==-1)
+                if(search_global_identifier(global, id->name)!=NULL)
+                    printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-
+                }
             }
             continue;
         }
+
         if(p->children[i].term.tokenClass == TK_FUNID)
         {
             if(search_function_hashtable(funcs, p->children[i].term.lexeme)==NULL)

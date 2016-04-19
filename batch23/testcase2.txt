@@ -9,6 +9,7 @@ _addRecords input parameter list[record #marks c3b5, record #marks c3b6]
 output parameter list [ record #marks b3c45];
 	%_readMarks(c3b5);
 	%_readMarks(c3b6);
+    type int : b3;
 	b3c45 <--- c3b5 + c3b6;
 	return [b3c45];
 end
@@ -34,6 +35,7 @@ _main
 	type record #marks : d4;
 	% The variable d4 stores the marks of one student
 
+    type int : b3:global;
 	type int : b5;
 	type int : d5cb34567;
 	type record #marks : b5c6;
