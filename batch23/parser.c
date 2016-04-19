@@ -541,7 +541,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             if(ast->children[i].nonterm == iterativeStmt && whileState==2)
             {
                 if(!isUpdate)
-                    printf("error: While statement is not getting updated\n");
+                    printf("error: %llu While statement is not getting updated\n",ast->children[i].line_num);
                 isUpdate = 0;
                 whileList = NULL;
                 whileState = 0;
@@ -659,7 +659,7 @@ void printasTree(astree *p, FILE *outfile)
             fprintf(outfile,"\n%20s%12llu\t%15s\t\t%16s\t\t\t\t\t            %20s\t\tyes\t",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
         else
         {
-            fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no\t%10s",n,tokenName(t->nonterm),tokenName(p->nonterm),tokenName(t->type));
+            fprintf(outfile,"\n                ----\t     ----              ----%21s%24s\t\t%20s\t\t no\t%10s\t%10llu",n,tokenName(t->nonterm),tokenName(p->nonterm),tokenName(t->type),t->line_num);
             printasTree(t, outfile);
         }
     }
