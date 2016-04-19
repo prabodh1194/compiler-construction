@@ -111,6 +111,11 @@ const char *writeProc = "\
                          mov eax,sys_write\n\
                          mov ebx,stdout\n\
                          int 80h\n\
+                         \n\
+                         mov eax, sys_write\n\
+                         mov ebx, stdout\n\
+                         mov ecx, newl\n\
+                         mov edx, newlen\n\
                          ret\n";
 
 int ifNo = 0;
@@ -120,7 +125,7 @@ char loopNoBuf[11];
 
 void genCode(astree *p, char *field, FILE *out) {
     int i;
-    identifier_list *fields;
+    identifier_list *fields, *id;
     char *type;
     if(!p->isTerminal) {
         switch(p->nonterm) {
@@ -135,8 +140,9 @@ void genCode(astree *p, char *field, FILE *out) {
                         \n\
                         SECTION         .data\n\
                         minus           db      \"-\",0\n\
-                        minuslen       equ     $-minus\n\
-                        newl            db      \"\"\n\
+                        minuslen        equ     $-minus\n\
+                        newl            db      10\n\
+                        newlen          equ     $-newl\n\
                         \n\
                         SECTION         .bss\n\
                         inputbuf:       resb    6\n\
@@ -213,12 +219,7 @@ void genCode(astree *p, char *field, FILE *out) {
                 break;
 
             case assignmentStmt:
-                if(p->children[0].isTerminal)
-                {
-                    type = search_function_wise_identifier_hashtable(local, "_main\0", p->children[0].term.lexeme)->type;
-                    fields = get_record_fields(record, type);
-                }
-                if(!p->children[0].isTerminal || strcmp(type,"int")==0 || strcmp(type,"real")==0)
+                if(!p->children[0].isTerminal || p->type == TK_INT || p->type == TK_REAL)
                 {
                     genCode(p->children+2, field, out);
                     if(!p->children[0].isTerminal && p->children[0].nonterm == singleOrRecId)
@@ -228,6 +229,11 @@ void genCode(astree *p, char *field, FILE *out) {
                 }
                 else
                 {
+                    id = search_function_wise_identifier_hashtable(local, "_main\0", p->children[0].term.lexeme);
+                    if(id == NULL)
+                        id = search_global_identifier(global, p->children[0].term.lexeme);
+                    type = id->type;
+                    fields = get_record_fields(record, type);
                     for(;fields!=NULL;fields=fields->next)
                     {
                         if(fields->name == NULL)
@@ -280,15 +286,19 @@ void genCode(astree *p, char *field, FILE *out) {
                         genCode(p->children+1, field, out);
                 }
                 else {
-                    identifier_list *id = search_function_wise_identifier_hashtable(local, "_main\0", p->children[1].term.lexeme);
-                    if(strcmp(id->type,"int")==0 || strcmp(id->type, "real") == 0)
+                    type = id->type;
+                    if(p->type == TK_INT || p->type == TK_REAL)
                     {
                         genCode(p->children+1, field, out);
                         fprintf(out, "call _write\n\n");
                     }
                     else
                     {
-                        identifier_list *fields = get_record_fields(record, id->type);
+                        id = search_function_wise_identifier_hashtable(local, "_main\0", p->children[1].term.lexeme);
+                        if(id == NULL)
+                            id = search_global_identifier(global, p->children[1].term.lexeme);
+                        type = id->type;
+                        identifier_list *fields = get_record_fields(record, type);
                         for(; fields != NULL; fields = fields->next)
                         {
                             if(fields->name == NULL)
@@ -503,7 +513,10 @@ void genCode(astree *p, char *field, FILE *out) {
         {
             case TK_ID:
                 fprintf(out,"mov ax,[%s",p->term.lexeme);
-                type = search_function_wise_identifier_hashtable(local, "_main", p->term.lexeme)->type;
+                id = search_function_wise_identifier_hashtable(local, "_main", p->term.lexeme);
+                if(id == NULL)
+                    id = search_global_identifier(global, p->term.lexeme);
+                type = id->type;
                 if(strcmp(type,"int")==0 || strcmp(type, "real")==0)
                     fprintf(out,"]\n");
                 else
