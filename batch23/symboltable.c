@@ -161,6 +161,7 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 		h->table[index]->size = 0 ;
 		flag = add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type,h->table[index]->offset);
 		h->table[index]->offset += offset;
+		h->table[index]->size += offset;
 		return flag;
 	}
 	/*
@@ -443,13 +444,14 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 	int i;
 	function_identifier_node* current_pointer;
 	identifier_hashtable* current_identifier_hashtable;
-	//printf("%d\n", h->size);
 	printf("                 Lexeme               Type                Scope         Offset \n");
 	for (i=0;i<h->size;i++){
 		//printf("%d %s\n",i, h->table[i].value);
 		current_pointer = h->table[i];
+
 		while(current_pointer != NULL){
 			//printf("%s \nCurrent Function Scope: ",current_pointer->fname);
+			printf("%d\n", current_pointer->size);
 			current_identifier_hashtable = current_pointer->id_hashtable;
 			print_identifier_hashtable(current_identifier_hashtable, current_pointer->fname);
 			current_pointer = current_pointer->next;
