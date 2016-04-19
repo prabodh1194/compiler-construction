@@ -404,7 +404,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                             id = id1;
                         if(whileState == 1 && id!=NULL)
                             whileList = addIdentifier(whileList, id->name, id->type, 0);
-                        if(i == 0 && !isUpdate && whileList!=NULL && p->nonterm==singleOrRecId)
+                        if(i == 0 && !isUpdate && whileList!=NULL && p->nonterm==singleOrRecId && id!=NULL)
                         {
                             identifier_list *temp;
                             temp = whileList;
@@ -472,18 +472,6 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     id = NULL;
                     id = getParams(p->children, id, name, 0);
                     bzero(message, 200);
-                    compare_parameter_list_type(id, get_input_parameter_list(funcs, ast->children[j].term.lexeme), message);
-                    if(message[0]!='O')
-                    {
-                        if(message[0]=='N')
-                            printf("error: %llu Mismatch in number of input parameters\n",ast->children[j].term.line_num);
-                        else
-                            printf("error: %llu In input parameters %s\n",ast->children[j].term.line_num,message);
-                        return;
-                    }
-                    id1 = NULL;
-                    id1 = getParams(p->children+5, id1, name, 0);
-                    bzero(message, 200);
                     compare_parameter_list_type(id, get_output_parameter_list(funcs, ast->children[j].term.lexeme), message);
                     if(message[0]!='O')
                     {
@@ -491,6 +479,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                             printf("error: %llu Mismatch in number of output parameters\n",ast->children[j].term.line_num);
                         else
                             printf("error: %llu In output parameters %s\n",ast->children[j].term.line_num,message);
+                        return;
+                    }
+                    id1 = NULL;
+                    id1 = getParams(p->children+5, id1, name, 0);
+                    bzero(message, 200);
+                    compare_parameter_list_type(id1, get_input_parameter_list(funcs, ast->children[j].term.lexeme), message);
+                    if(message[0]!='O')
+                    {
+                        if(message[0]=='N')
+                            printf("error: %llu Mismatch in number of input parameters\n",ast->children[j].term.line_num);
+                        else
+                            printf("error: %llu In input parameters %s\n",ast->children[j].term.line_num,message);
                         return;
                     }
                 }
@@ -531,14 +531,14 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     return;
                 }
             }
-            else if(ast->nonterm == iterativeStmt)
+            else if(ast->children[i].nonterm == iterativeStmt)
                 whileState = 1;
             else if(whileState && ast->nonterm == stmt)
-                whileState = 0;
+                whileState = 2;
 
             createAbstractSyntaxTree(temp, &ast->children[j], name);
 
-            if(ast->children[i].nonterm == iterativeStmt && whileState)
+            if(ast->children[i].nonterm == iterativeStmt && whileState==2)
             {
                 if(!isUpdate)
                     printf("error: While statement is not getting updated\n");
