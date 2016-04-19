@@ -64,6 +64,7 @@ identifier_hashtable* create_identifier_hashtable(int size){
 		return NULL;
 	bzero(h->table, sizeof(identifier_list *)*size);
 	h->size = size;
+	h->offset = 0;
 	return h;
 }
 
@@ -96,16 +97,12 @@ function_wise_identifier_hashtable* create_function_local_identifier_hashtable(i
 */
 identifier_list *create_identifier_list(char *name,char *type){
 	identifier_list *idlist;
-	idlist = addIdentifier(NULL,name,type);
+	idlist = add_element_to_list(NULL,name,type);
 	return idlist;
 }
 
 
-/* ***************Change the description when adding more fields to identifier list**************
- *inserts a new (name, type) pair to the beginning of identifier list
- *and returns a pointer to the new list
-*/
-identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
+identifier_list *add_element_to_list(identifier_list *idlist, char *name, char *type){ //, char *nameOfRecord) {
     identifier_list *newPair = (identifier_list *)malloc(sizeof(identifier_list));
     bzero(newPair, sizeof(identifier_list));
     newPair->name = name;
@@ -115,11 +112,26 @@ identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type){
     return newPair;
 }
 
+/* ***************Change the description when adding more fields to identifier list**************
+ *inserts a new (name, type) pair to the beginning of identifier list
+ *and returns a pointer to the new list
+*/
+identifier_list *addIdentifier(identifier_list *idlist, char *name, char *type, int offset){ //, char *nameOfRecord) {
+    identifier_list *newPair = (identifier_list *)malloc(sizeof(identifier_list));
+    bzero(newPair, sizeof(identifier_list));
+    newPair->name = name;
+    newPair->type = type;
+    newPair->offset = offset;
+    newPair->next = idlist;
+    idlist = newPair;
+    return newPair;
+}
+
 
 /*
  * Wrapper function which ultimately inserts identifier in the identifier_hashtable at the hashed location
 */
-int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type){
+int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, char *type,int offset){
 	int index;
 	index = hash_function(name, h->size);
 	identifier_list* temp;
@@ -129,12 +141,11 @@ int add_identifier_to_identifierhashtable(identifier_hashtable *h, char *name, c
 			return -1;
 		temp = temp->next;
 	}
-	h->table[index] = addIdentifier(h->table[index], name, type);
-	
+	h->table[index] = addIdentifier(h->table[index], name, type, offset);
 }
 
 //Adds an identifier to function's local identifier symbol table
-int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist){
+int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *h, char *fname, identifier_list *idlist, int offset){
 	int index,flag=0;
 	index = hash_function(fname, h->size); //Hash value computed by hash function for the given function name
 	/*
@@ -146,7 +157,10 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
         bzero(h->table[index],sizeof(function_identifier_node));
 		h->table[index]->fname = fname;
 		h->table[index]->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
-		flag = add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type);
+		h->table[index]->offset = 0;
+		h->table[index]->size = 0 ;
+		flag = add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type,h->table[index]->offset);
+		h->table[index]->offset += offset;
 		return flag;
 	}
 	/*
@@ -170,8 +184,13 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 			new_entry->fname = fname;
 			//create idenitifer_hashtable for the above function_identifier_node
 			new_entry->id_hashtable = create_identifier_hashtable(h->size); //check size parameter
+			new_entry->size = 0;
+			new_entry->offset = 0;
 			//inserts the given identifier in the local identifier symbol table of the function
-			flag = add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type);
+			flag = add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type, new_entry->offset);
+			new_entry->offset += offset;
+			new_entry->size += offset;
+			
 			if (flag == -1)
 				return flag;
 			//puts the newly created function_identifier_node at the head of the hashed location i.e. chaining
@@ -184,7 +203,10 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 			So just add the identifier to that function's local identifier hash table.
 		*/
 		else{
-			flag = add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type);
+			flag = add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type, temp->offset);
+			temp->offset += offset;
+			temp->size += offset;
+			
 			return flag;
 		}
 	}	
@@ -247,6 +269,18 @@ int add_function(function_hashtable* h, char* fname, identifier_list* ip_list, i
 		return 1;
 	}
 }
+int get_record_size(function_wise_identifier_hashtable* h, char *fname){
+	int index;
+	function_identifier_node *pos;
+	index = hash_function(fname, h->size);
+	pos = h->table[index];
+	while(pos!=NULL){
+		if(strcmp(fname,pos->fname) == 0)
+			return pos->size;
+		pos = pos->next;
+	}
+	return -1;
+}
 
 identifier_list* search_global_identifier(identifier_hashtable* h, char *name){
 	int index;
@@ -259,6 +293,29 @@ identifier_list* search_global_identifier(identifier_hashtable* h, char *name){
 		temp = temp->next;
 	}
 	return NULL;
+}
+
+identifier_list *get_record_fields(function_wise_identifier_hashtable* h, char *rname){
+	int index,i;
+	identifier_hashtable *idh;
+	identifier_list *idpos,*temp;
+	temp = (identifier_list*) malloc(sizeof(identifier_list));
+	bzero(temp, sizeof(identifier_list));
+	idh = get_function_identifier_hashtable(h,rname);
+	if(idh == NULL){
+		//printf("Function's/Record's identifier hashtable not found. Check code for error"); //Will remove this printf later
+		return NULL;
+	}
+	else{
+		for(i=0;i<h->size;i++){
+			idpos = idh->table[i];	
+			while(idpos!=NULL){
+				temp = add_element_to_list(temp,idpos->name,idpos->type);
+				idpos = idpos->next;
+			}
+		}
+		return temp;
+	}
 }
 
 identifier_hashtable* get_function_identifier_hashtable(function_wise_identifier_hashtable* h, char *fname){
@@ -358,16 +415,25 @@ void print_function_hashtable(function_hashtable* h){
 	}
 }
 
-void print_identifier_hashtable(identifier_hashtable *h){
-	int i;
+void print_identifier_hashtable(identifier_hashtable *h,char *fname){
+	int i, offset=0;
 	identifier_list* current_pointer;
 	for (i=0;i<h->size;i++){
 		//printf("%d %s\n",i, h->table[i].value);
 		current_pointer = h->table[i];
-		printf("\t\t%d \n",i);
+		//printf("\t\t%d \n",i);
+		if(fname == NULL){
+			fname = (char *)malloc(sizeof(char)*25);
+			strcpy(fname,"Global");
+		}
 		while(current_pointer != NULL){
-			printf("\t\tIdentifier Name: %s", current_pointer->name);
-			printf("\t\tType: %s\n", current_pointer->type);
+			//printf("\t\tIdentifier Name: %s", current_pointer->name);
+			//printf("\t\tType: %s\n", current_pointer->type);
+			printf("%20s", current_pointer->name);
+			printf("%20s", current_pointer->type);
+			printf("%20s", fname);
+			printf("%10d\n", current_pointer->offset);
+			//record implementation to be done
 			current_pointer = current_pointer->next;
 		}
 	}
@@ -378,14 +444,14 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 	function_identifier_node* current_pointer;
 	identifier_hashtable* current_identifier_hashtable;
 	//printf("%d\n", h->size);
+	printf("                 Lexeme               Type                Scope         Offset \n");
 	for (i=0;i<h->size;i++){
 		//printf("%d %s\n",i, h->table[i].value);
 		current_pointer = h->table[i];
-		printf("%d \n",i);
 		while(current_pointer != NULL){
-			printf("%s \nCurrent Function Scope: ",current_pointer->fname);
+			//printf("%s \nCurrent Function Scope: ",current_pointer->fname);
 			current_identifier_hashtable = current_pointer->id_hashtable;
-			print_identifier_hashtable(current_identifier_hashtable);
+			print_identifier_hashtable(current_identifier_hashtable, current_pointer->fname);
 			current_pointer = current_pointer->next;
 		}
 	}
