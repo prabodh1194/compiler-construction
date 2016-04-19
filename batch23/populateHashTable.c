@@ -9,7 +9,7 @@
 
 void populateFunctionST(parseTree *p, char *fname, int state)
 {
-    int i, nochildren = p->nochildren;
+    int i, nochildren = p->nochildren, offset = 4;
     identifier_list *id;
     for(i=0;i<nochildren;i++)
     {
@@ -44,12 +44,19 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
                 if(p->children[i-1].children[0].nonterm == constructedDatatype)
+                {
                     id->type = p->children[i-1].children[0].children[1].term.lexeme;
+                    offset = get_record_size(record, id->name);
+                }
                 else
+                {
                     id->type = p->children[i-1].children[0].children[0].term.lexeme;
+                    if(p->children[i-1].children[0].children[0].term.tokenClass == TK_INT)
+                        offset = 2;
+                }
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
-                if(add_function_local_identifier_hashtable(local, fname, id)==-1)
+                if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
             }
             else if(!(!p->children[i].isTerminal && p->children[i].nonterm == remaining_list))
@@ -65,13 +72,20 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
                 if(p->children[i-2].children[0].nonterm == constructedDatatype)
+                {
                     id->type = p->children[i-2].children[0].children[1].term.lexeme;
+                    offset = get_record_size(record, id->name);
+                }
                 else
+                {
                     id->type = p->children[i-2].children[0].children[0].term.lexeme;
+                    if(p->children[i-2].children[0].children[0].term.tokenClass == TK_INT)
+                        offset = 2;
+                }
                 id->next = NULL;
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
-                    if(add_function_local_identifier_hashtable(local, fname, id)==-1)
+                    if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
                         printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                 }
                 else
@@ -96,7 +110,9 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->name = p->children[i].term.lexeme;
                 id->type = p->children[i-2].children[0].term.lexeme;
                 id->next = NULL;
-                if(add_function_local_identifier_hashtable(record, fname, id)==-1)
+                if(p->children[i-2].children[0].term.tokenClass == TK_INT)
+                    offset = 2;
+                if(add_function_local_identifier_hashtable(record, fname, id, offset)==-1)
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
 
             }

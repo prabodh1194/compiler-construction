@@ -39,6 +39,8 @@ _main
 	type record #marks : b5c6;
 	%The identifier b5c6 stores the sum of marks
 
+    d4 <--- d4+d4;
+    b5 <--- d5cb34567;
 	b5 <--- 1;
 	read(d5cb34567);
 	b5c6.maths <--- 0.00;
@@ -58,6 +60,7 @@ _main
 	endwhile
 
     write(b5);
+    write(b5c6);
 
 	d4 <--- b5c6 / d5cb34567;
 	%write(d4.maths);

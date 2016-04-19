@@ -9,7 +9,7 @@ _main
 	type record #marks : d4;
 	type int : b5;
 	type int : d5cb34567;
-	type int : b5;
+	%type int : b5;
 	type record #marks : b3c2;
 
 	b5 <--- 1;
@@ -23,7 +23,7 @@ _main
 		read(b3c2.chemistry);
 		d4 <--- b3c2 + d4; 
 		b5 <--- b5 +1;
-	endwhile;
+	endwhile
 	write(d4);
 	return;
 end
