@@ -7,6 +7,7 @@
 #include "populateHashTable.h"
 #include <string.h>
 
+extern short semantic;
 void populateGlobalRecords(parseTree *p, char *rname, int state)
 {
     int i, nochildren = p->nochildren, offset;
@@ -38,7 +39,10 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
                 if(p->children[i+1].children[0].term.tokenClass!=eps)
                 {
                     if(add_identifier_to_identifierhashtable(global, id->name, id->type, global->offset)==-1)
+                    {
                         printf("error: %llu Variable %s is a global variable and cannot be declared again\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                        semantic = 0;
+                    }
                 }
             }
         }
@@ -59,7 +63,10 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
                 if(p->children[i-2].children[0].term.tokenClass == TK_INT)
                     offset = 2;
                 if(add_function_local_identifier_hashtable(record, rname, id, offset)==-1)
+                {
                     printf("error: %llu Field identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
+                }
 
             }
             continue;
@@ -91,6 +98,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 if(add_function(funcs, fname, NULL, TK_FUNID)==-1)
                 {
                     printf("error: %llu Function overloading not allowed\n",p->children[0].term.line_num);
+                    semantic = 0;
                     return;
                 }
             state = function;
@@ -119,9 +127,15 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->next = NULL;
                 add_function(funcs,fname,id,state);
                 if(search_global_identifier(global, id->name)!=NULL)
+                {
                     printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
+                }
                 else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
+                {
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
+                }
             }
             else if(!(!p->children[i].isTerminal && p->children[i].nonterm == remaining_list))
                 continue;
@@ -150,9 +164,15 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
                 if(search_global_identifier(global, id->name)!=NULL)
+                {
                     printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
+                }
                 else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
+                {
                     printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
+                }
                 }
             }
             continue;
@@ -163,6 +183,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
             if(search_function_hashtable(funcs, p->children[i].term.lexeme)==NULL)
             {
                 printf("error: %llu Function %s not defined\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                semantic = 0;
                 return;
             }
         }
@@ -189,10 +210,12 @@ identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int
                     printf("error: %llu Variable %s isn't declared\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                     type = (char *)malloc(sizeof(char)*4);
                     sprintf(type, "err");
+                    semantic = 0;
                 }
                 else if(id!=NULL && id1!=NULL)
                 {
                     printf("error: %llu %s declared in both global and local\n", p->children[i].term.line_num, p->children[i].term.lexeme);
+                    semantic = 0;
                 }
                 else if(id == NULL)
                     id = id1;
