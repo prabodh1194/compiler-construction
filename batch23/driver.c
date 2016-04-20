@@ -73,12 +73,21 @@ int main(int argc, char **args)
         switch(choice)
         {
             case 1:
+                if(flags[1-1])
+                {
+                    printf("Token list can be printed only once\n");
+                    break;
+                }
                 printf("Printing tokens\n");
                 printTok(args[1]);
+                flags[1-1] = 1;
                 break;
             case 2:
                 if(!flags[2-1])
+                {
+                    printf("Compile code first by pressing 6\n");
                     break;
+                }
                 fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
                 printParseTree(tree, outfile);
                 printf("\n");
@@ -86,12 +95,20 @@ int main(int argc, char **args)
                 break;
             case 3:
                 if(!flags[3-1])
+                {
+                    printf("Compile code first by pressing 6\n");
                     break;
+                }
+                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
                 printasTree(ast, outfile);
+                printf("\n");
                 break;
             case 4:
                 if(!semantic || !syntactic)
+                {
+                    printf("Compile code first by pressing 6\n");
                     break;
+                }
                 unsigned long ps = parseSize*sizeof(parseTree);
                 unsigned long as = astSize*sizeof(astree);
                 printf("Parse tree: Number of nodes = %d\tAllocated Memory = %lu\n", parseSize, ps);
@@ -100,13 +117,21 @@ int main(int argc, char **args)
                 break;
             case 5:
                 if(!flags[5-1])
+                {
+                    printf("Compile code first by pressing 6\n");
                     break;
+                }
                 //print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
                 //print_function_wise_identifier_hashtable(record);
                 print_identifier_hashtable(global, NULL);
                 break;
             case 6:
+                if(syntactic || semantic)
+                {
+                    printf("Code already compiled once\n");
+                    break;
+                }
                 getNextToken(fp,to);
                 ast->nonterm = tree->nonterm = program;
                 ast->isTerminal = tree->isTerminal = 0;
@@ -130,6 +155,8 @@ int main(int argc, char **args)
             case 7:
                 if(semantic && syntactic)
                     genCode(ast, NULL, fopen(args[2],"w"));
+                else
+                    printf("Errors exist in code\n");
             case 8:
                 break;
             default:
