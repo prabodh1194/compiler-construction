@@ -358,7 +358,10 @@ void genCode(astree *p, char *field, FILE *out) {
             case termPrime:
                 if(p->nochildren == 2)
                 {
-                    fprintf(out,"mov bx, [%s]\n",p->children[1].term.lexeme);
+                    if(p->children[1].term.tokenClass == TK_ID)
+                        fprintf(out,"mov bx, [%s]\n",p->children[1].term.lexeme);
+                    else
+                        fprintf(out,"mov bx, %s\n",p->children[1].term.lexeme);
                     fprintf(out,"pop ax\n");
                     if(p->children[0].term.tokenClass == TK_MUL)
                         fprintf(out,"mul bx\n");

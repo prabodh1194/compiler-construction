@@ -22,6 +22,7 @@ _main
 		read(b3c2.physics);
 		read(b3c2.chemistry);
 		d4 <--- b3c2 + d4; 
+        d4 <--- d4 * 2 + b3c2*2;
 		b5 <--- b5 +1;
 	endwhile
 	write(d4);
