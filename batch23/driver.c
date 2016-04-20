@@ -138,6 +138,7 @@ int main(int argc, char **args)
                 ast->children = NULL; 
                 tree->children = NULL;
                 parseInputSourceCode(fp,t,g,tree,to);
+                flags[6-1] = 1;
                 fclose(fp);
                 if(!syntactic)
                     break;
