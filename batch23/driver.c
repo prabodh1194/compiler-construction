@@ -104,7 +104,7 @@ int main(int argc, char **args)
                 printf("\n");
                 break;
             case 4:
-                if(!semantic || !syntactic)
+                if(!flags[4-1])
                 {
                     printf("Compile code first by pressing 6\n");
                     break;
@@ -127,7 +127,7 @@ int main(int argc, char **args)
                 print_identifier_hashtable(global, NULL);
                 break;
             case 6:
-                if(syntactic || semantic)
+                if(flags[6-1])
                 {
                     printf("Code already compiled once\n");
                     break;
@@ -145,15 +145,15 @@ int main(int argc, char **args)
                 populateGlobalRecords(tree, NULL, -1);
                 flags[5-1] = 1;
                 populateFunctionST(tree, NULL,-1);
-                    createAbstractSyntaxTree(tree, ast, NULL);
+                createAbstractSyntaxTree(tree, ast, NULL);
                 if(syntactic && semantic)
                 {
                     printf("Code compiled successfully\n");
-                    flags[3-1] = 1;
+                    flags[4-1] = flags[6-1] = flags[7-1] = flags[3-1] = 1;
                 }
                 break;
             case 7:
-                if(semantic && syntactic)
+                if(flags[7-1])
                     genCode(ast, NULL, fopen(args[2],"w"));
                 else
                     printf("Errors exist in code\n");
