@@ -41,6 +41,7 @@
  * <arithmetixExpression> = a2 and so on, hence read as 2 characters at once
  */
 
+int parseSize = 0, astSize = 0;
 short syntactic = 1; //successful syntactic
 short semantic  = 1; //successful semantic
 
@@ -247,6 +248,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
             {
                 node = root->children = (parseTree *)malloc(sizeof(parseTree)*nochildren);
                 bzero(root->children, sizeof(parseTree)*nochildren);
+                parseSize+=nochildren;
             }
 
             for(i=0;i<nochildren;i++)
@@ -371,6 +373,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
     ast->nochildren = usefulChildrenCount;
     ast->children = (astree *)malloc(ast->nochildren * sizeof(astree));
     bzero(ast->children,usefulChildrenCount*sizeof(astree));
+    astSize+=usefulChildrenCount;
 
     i = 0, j = 0;
     while(i < p->nochildren) {
@@ -587,6 +590,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             {
                 ast->nochildren-=1;
                 j-=1;
+                astSize-=1;
             }
             else if(ast->children[j].nochildren==1)
             {
@@ -600,6 +604,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     ast->children[j].nochildren = 0;
                     ast->children[j].children = NULL;
                     free(temp);
+                    astSize-=1;
                 }
             }
             j++;

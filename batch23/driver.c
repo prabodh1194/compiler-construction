@@ -18,14 +18,17 @@
 #include "populateHashTable.h"
 #include "codegen.h"
 
+extern int parseSize;
+extern int astSize;
 extern short syntactic; //syntactic flag
 extern short semantic;  //semantic flag
 int main(int argc, char **args)
 {
     int i,j,choice,flag=0;
+    short flags[] = {0,0,0,0,0,0,0};
 
     FILE *fp = fopen(args[1],"r");
-    FILE *outfile = fopen(args[2],"w");
+    FILE *outfile = stdout;
 
     printf("\n(a) FIRST and FOLLOW set automated");
     printf("\n(b) Both lexical and syntax analysis modules implemented");
@@ -33,7 +36,7 @@ int main(int argc, char **args)
     printf("\n(d) modules work with all testcases");
     printf("\n(e) Parse tree constructed\n");
 
-        grammar g; //data structure to store grammar as a double dimensional array of respective enums
+    grammar g; //data structure to store grammar as a double dimensional array of respective enums
     table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
     parseTree *tree; //parsetree datastructure--this is the root of the tree
     astree *ast;
@@ -65,77 +68,76 @@ int main(int argc, char **args)
 
     do
     {
-        printf("1. Print comment free code\n2. Print token list\n3. Syntactic analysis of code\n4. Print parse tree\n5. Print FIRST and FOLLOW sets\n6. Generate AST\n7. Populate ST\n8. Generate ASM\n9. Exit\n(1/2/3/4/5/6/7/8/9)\t");
+        printf("1. Print token list\n2. Syntactic analysis of code\n3. Print AST\n4. Memory usage\n5. Print symbol table\n6. Compile\n7. Generate ASM code\n8. Exit\n(1/2/3/4/5/6/7/8)\t");
         scanf("%d",&choice);
         switch(choice)
         {
             case 1:
-                printf("Printing comment free code\n");
-                printCode(args[1]);
-                break;
-            case 2:
                 printf("Printing tokens\n");
                 printTok(args[1]);
                 break;
-            case 3:
-                //parse tree shall be created only once
-                if(!flag)
-                {
-                    getNextToken(fp,to);
-                    ast->nonterm = tree->nonterm = program;
-                    ast->isTerminal = tree->isTerminal = 0;
-                    ast->children = NULL; 
-                    tree->children = NULL;
-                    parseInputSourceCode(fp,t,g,tree,to);
-                    flag=1;
-                    fclose(fp);
-                    if(syntactic)
-                        printf("\nCode compiled succesfully\n");
-                }
-                else
-                    printf("Restart driver\n");
-                break;
-            case 4:
-                //can't print parsetree before making one
-                if(!flag)
-                {
-                    printf("Please use option 3 before doing this\n");
+            case 2:
+                if(!flags[2-1])
                     break;
-                }
-                fprintf(outfile,"\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
+                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
                 printParseTree(tree, outfile);
                 printf("\n");
-                fclose(outfile);
-                printf("\nUse gedit outfile.txt to view the parse tree\n");
+                //printf("\nUse gedit outfile.txt to view the parse tree\n");
                 break;
-            case 5:
-                //print first set
-                printff(1);
-                //print follow sets
-                printff(2);
-                break;
-            case 6:
-                createAbstractSyntaxTree(tree, ast, NULL);
+            case 3:
+                if(!flags[3-1])
+                    break;
                 printasTree(ast, outfile);
                 break;
-            case 7:
-                populateGlobalRecords(tree, NULL, -1);
-                populateFunctionST(tree, NULL,-1);
-                print_function_hashtable(funcs);
+            case 4:
+                if(!semantic || !syntactic)
+                    break;
+                unsigned long ps = parseSize*sizeof(parseTree);
+                unsigned long as = astSize*sizeof(astree);
+                printf("Parse tree: Number of nodes = %d\tAllocated Memory = %lu\n", parseSize, ps);
+                printf("Abstract syntax tree: Number of nodes = %d\tAllocated Memory = %lu\n", astSize, as);
+                printf("Compression percentage = %lu\n",(ps-as)*100/ps);
+                break;
+            case 5:
+                if(!flags[5-1])
+                    break;
+                //print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local);
-                print_function_wise_identifier_hashtable(record);
+                //print_function_wise_identifier_hashtable(record);
                 print_identifier_hashtable(global, NULL);
                 break;
+            case 6:
+                getNextToken(fp,to);
+                ast->nonterm = tree->nonterm = program;
+                ast->isTerminal = tree->isTerminal = 0;
+                ast->children = NULL; 
+                tree->children = NULL;
+                parseInputSourceCode(fp,t,g,tree,to);
+                fclose(fp);
+                if(!syntactic)
+                    break;
+                flags[2-1] = 1;
+                populateGlobalRecords(tree, NULL, -1);
+                flags[5-1] = 1;
+                populateFunctionST(tree, NULL,-1);
+                    createAbstractSyntaxTree(tree, ast, NULL);
+                if(syntactic && semantic)
+                {
+                    printf("Code compiled successfully\n");
+                    flags[3-1] = 1;
+                }
+                break;
+            case 7:
+                if(semantic && syntactic)
+                    genCode(ast, NULL, fopen(args[2],"w"));
             case 8:
-                genCode(ast, NULL, fopen(args[3],"w"));
-            case 9:
                 break;
             default:
                 printf("Wrong choice\n");
                 break;
         }
     }
-    while(choice!=9);
+    while(choice!=8);
 
     return 0;
 }

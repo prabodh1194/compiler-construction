@@ -38,7 +38,7 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
                 if(p->children[i+1].children[0].term.tokenClass!=eps)
                 {
                     if(add_identifier_to_identifierhashtable(global, id->name, id->type, global->offset)==-1)
-                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                        printf("error: %llu Variable %s is a global variable and cannot be declared again\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                 }
             }
         }
