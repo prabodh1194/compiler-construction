@@ -18,7 +18,8 @@
 #include "populateHashTable.h"
 #include "codegen.h"
 
-extern short compilation; //compilation flag
+extern short syntactic; //syntactic flag
+extern short semantic;  //semantic flag
 int main(int argc, char **args)
 {
     int i,j,choice,flag=0;
@@ -88,7 +89,7 @@ int main(int argc, char **args)
                     parseInputSourceCode(fp,t,g,tree,to);
                     flag=1;
                     fclose(fp);
-                    if(compilation)
+                    if(syntactic)
                         printf("\nCode compiled succesfully\n");
                 }
                 else

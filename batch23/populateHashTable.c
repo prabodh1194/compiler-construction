@@ -173,6 +173,7 @@ void populateFunctionST(parseTree *p, char *fname, int state)
 identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int start)
 {
     int i;
+    char *type;
     identifier_list *id, *id1;
 
     for(i=start;i<p->nochildren;i++) 
@@ -185,17 +186,20 @@ identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int
                 id1 = search_global_identifier(global, p->children[i].term.lexeme);
                 if(id==NULL && id1 == NULL)
                 {
-                    printf("error: %llu %s isn't declared\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-                    return NULL;
+                    printf("error: %llu Variable %s isn't declared\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                    type = (char *)malloc(sizeof(char)*4);
+                    sprintf(type, "err");
                 }
                 else if(id!=NULL && id1!=NULL)
                 {
                     printf("error: %llu %s declared in both global and local\n", p->children[i].term.line_num, p->children[i].term.lexeme);
-                    return NULL;
                 }
                 else if(id == NULL)
                     id = id1;
-                list = add_element_to_list(list, p->children[i].term.lexeme, id->type);
+
+                if(id!=NULL)
+                    type = id->type;
+                list = add_element_to_list(list, p->children[i].term.lexeme, type);
             }
         }
         else

@@ -1,6 +1,6 @@
 /* codegen.c: implements the code generator
  *
- * Group 23 - Prabodh Agarwal (2012B1A7801P), Naresh Raghuraman (2010A7PS090P)
+ * Group 23 - Prabodh Agarwal (2012B1A7801P), Prabodh Agarwal (2012B1A7801P)
  */
 
 #include <stdio.h>
@@ -318,11 +318,11 @@ void genCode(astree *p, char *field, FILE *out) {
 
             case allVar:
                 if(p->nochildren == 1)
-                    genCode(p->children+0, field, out);
+                    genCode(p->children, field, out);
                 break;
 
             case var:
-                genCode(p->children+0, field, out);
+                genCode(p->children, field, out);
                 break;
 
             case arithmeticExpression:

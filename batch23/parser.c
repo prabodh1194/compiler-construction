@@ -41,7 +41,8 @@
  * <arithmetixExpression> = a2 and so on, hence read as 2 characters at once
  */
 
-short compilation = 1; //successful compilation
+short syntactic = 1; //successful syntactic
+short semantic  = 1; //successful semantic
 
 void printExpectedTokens(nontermid state, table tb)
 {
@@ -185,7 +186,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         fprintf(stderr,"error: line %llu:%ld %s\n",t->line_num,t->col,t->lexeme);
         printExpectedTokens(root->nonterm, tb);
         getNextToken(sourceCodeFile, t);
-        compilation = 0;
+        syntactic = 0;
         return -2;
     }
 
@@ -197,7 +198,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         if(root->term.tokenClass != t->tokenClass)
         {
             fprintf(stderr, "error: line %llu:%ld The token %s for lexeme <%s> does not match. The expected token here is %s\n", t->line_num, t->col, tokenName(t->tokenClass), t->lexeme, tokenName(root->term.tokenClass));
-            compilation = 0;
+            syntactic = 0;
             return -2;
         }
         else
@@ -226,7 +227,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
         {
             fprintf(stderr, "error: line %llu:%ld Found unexpected token %s for lexeme <%s>\n",t->line_num, t->col, tokenName(t->tokenClass), t->lexeme);
             printExpectedTokens(root->nonterm, tb);
-            compilation = 0;
+            syntactic = 0;
             return -1;
         }
         //found rule
@@ -309,7 +310,7 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
                         break;
                     }
                     else
-                        compilation = 0;
+                        syntactic = 0;
                     return -1;
                 }
             }
@@ -398,6 +399,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         if(id1!=NULL && id!=NULL)
                         {
                             printf("error: %llu %s declared in both global and local\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                            semantic = 0;
                             return;
                         }
                         if(id == NULL)
@@ -424,7 +426,8 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
                     if(id == NULL)
                     {
-                        printf("error: %llu %s doesn't exist\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                        printf("error: %llu Variable %s isn't declared\n", ast->children[j].term.line_num, ast->children[j].term.lexeme);
+                        semantic = 0;
                         return;
                     }
 
@@ -467,6 +470,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     if(strcmp(ast->children[j].term.lexeme, name)==0)
                     {
                         printf("error: %llu %s is a recursive function call\n", ast->children[j].term.line_num, name);
+                        semantic = 0;
                         return;
                     }
                     id = NULL;
@@ -479,6 +483,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                             printf("error: %llu The number of output parameters at function call <%s> is incorrect\n",ast->children[j].term.line_num,ast->children[j].term.lexeme);
                         else
                             printf("error: %llu In output parameters %s\n",ast->children[j].term.line_num,message);
+                        semantic = 0;
                         return;
                     }
                     id1 = NULL;
@@ -491,6 +496,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                             printf("error: %llu The number of input parameters at function call <%s> is incorrect\n",ast->children[j].term.line_num,ast->children[j].term.lexeme);
                         else
                             printf("error: %llu In input parameters %s\n",ast->children[j].term.line_num,message);
+                        semantic = 0;
                         return;
                     }
                 }
@@ -528,6 +534,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         printf("error: %llu The number of output parameters at return of function <%s> is incorrect\n",ast->children[j].term.line_num,name);
                     else
                         printf("error: %llu In output parameters %s\n",ast->children[0].term.line_num,message);
+                    semantic = 0;
                     return;
                 }
             }
@@ -541,7 +548,10 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             if(ast->children[i].nonterm == iterativeStmt && whileState==2)
             {
                 if(!isUpdate)
+                {
                     printf("error: %llu While statement is not getting updated\n",ast->children[i].line_num);
+                    semantic = 0;
+                }
                 isUpdate = 0;
                 whileList = NULL;
                 whileState = 0;
@@ -568,7 +578,10 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             }
 
             if(ast->type == TK_ERROR && (ast->nonterm == assignmentStmt || ast->nonterm == booleanExpression))
+            {
                 printf("error: %llu Type mismatch\n",ast->line_num);
+                semantic = 0;
+            }
 
             if(ast->children[j].nochildren==0)
             {
