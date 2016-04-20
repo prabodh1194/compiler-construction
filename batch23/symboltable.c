@@ -431,8 +431,8 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname){
 			//printf("\t\tIdentifier Name: %s", current_pointer->name);
 			//printf("\t\tType: %s\n", current_pointer->type);
 			printf("%23s", current_pointer->name);
-			printf("%23s", current_pointer->type);
-			printf("%23s", fname);
+			printf("%19s", current_pointer->type);
+			printf("%21s", fname);
 			printf("%15d\n", current_pointer->offset);
 			//record implementation to be done
 			current_pointer = current_pointer->next;
@@ -471,8 +471,12 @@ void compare_parameter_list_type(identifier_list* i1, identifier_list* i2, char*
 	if(temp1 == NULL && temp2 == NULL)
 		sprintf(returnmsg, "OK");
 	else if(temp1 !=NULL && temp2 != NULL){
-		sprintf(returnmsg,"The type <%s> of variable <%s> returned does not match with the type <%s> of the formal output parameter <%s>",
+		if(strcmp(temp1->type,"err") == 0 || strcmp(temp2->type,"err") == 0)
+			sprintf(returnmsg, "OK");
+		else{
+			sprintf(returnmsg,"The type <%s> of variable <%s> returned does not match with the type <%s> of the formal output parameter <%s>",
 			i1->type,i1->name,i2->type,i2->name);
+		}
 	}
 	else{
 		sprintf(returnmsg,"N");
