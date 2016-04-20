@@ -109,11 +109,11 @@ int main(int argc, char **args)
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
-                unsigned long ps = parseSize*sizeof(parseTree);
-                unsigned long as = astSize*sizeof(astree);
-                printf("Parse tree: Number of nodes = %d\tAllocated Memory = %lu\n", parseSize, ps);
-                printf("Abstract syntax tree: Number of nodes = %d\tAllocated Memory = %lu\n", astSize, as);
-                printf("Compression percentage = %lu\n",(ps-as)*100/ps);
+                float ps = parseSize*sizeof(parseTree);
+                float as = astSize*sizeof(astree);
+                printf("Parse tree: Number of nodes = %d\tAllocated Memory = %lf\n", parseSize, ps);
+                printf("Abstract syntax tree: Number of nodes = %d\tAllocated Memory = %lf\n", astSize, as);
+                printf("Compression percentage = %lf\n",(ps-as)*100/ps);
                 break;
             case 5:
                 if(!flags[5-1])
