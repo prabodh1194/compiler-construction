@@ -115,12 +115,10 @@ const char *writeProc = "\
                          mov ebx, stdout\n\
                          mov ecx, newl\n\
                          mov edx, newlen\n\
+                         int 80h\n\
                          ret\n";
 
-int ifNo = 0;
-char ifNoBuf[11];
-int loopNo = 0;
-char loopNoBuf[11];
+int ifNo = 0, loopNo = 0, boolNo = 0;
 
 void genCode(astree *p, char *field, FILE *out) {
     int i;
@@ -244,28 +242,27 @@ void genCode(astree *p, char *field, FILE *out) {
                 break;
 
             case singleOrRecId:
-                    fprintf(out, "mov [%s_%s],ax\n",p->children[0].term.lexeme, p->children[1].term.lexeme);
+                fprintf(out, "mov [%s_%s],ax\n",p->children[0].term.lexeme, p->children[1].term.lexeme);
                 break;
 
             case conditionalStmt:
-                snprintf(ifNoBuf, 10, "%d", ifNo);
                 genCode(p->children, field, out);
                 fprintf(out, "cmp ax, 0\n");
-                fprintf(out, "je ELSE%s\n", ifNoBuf);
+                fprintf(out, "je ELSE%d\n", ifNo);
                 genCode(p->children+2, field, out);
 
                 if(p->children[3].nonterm == otherStmts)
                     genCode(p->children+3, field, out);
 
-                fprintf(out, "jmp ENDIF%s\n", ifNoBuf);
-                fprintf(out, "ELSE%s:\n", ifNoBuf);
+                fprintf(out, "jmp ENDIF%d\n", ifNo);
+                fprintf(out, "ELSE%d:\n", ifNo);
 
                 if(p->children[3].nonterm == elseStmt)
                     genCode(p->children+3, field, out);
                 else if(p->children[4].nonterm == elseStmt)
                     genCode(p->children+4, field, out);
 
-                fprintf(out, "ENDIF%s:\n\n", ifNoBuf);
+                fprintf(out, "ENDIF%d:\n\n", ifNo);
                 ifNo++;
                 break;
 
@@ -310,13 +307,12 @@ void genCode(astree *p, char *field, FILE *out) {
                 break;
 
             case iterativeStmt:
-                snprintf(loopNoBuf, 10, "%d", loopNo);
-                fprintf(out, "STARTLOOP%s:\n", loopNoBuf);
+                fprintf(out, "STARTLOOP%d:\n", loopNo);
                 genCode(p->children, field, out);
-                fprintf(out, "cmp ax, 0\nje ENDLOOP%s\n", loopNoBuf);
+                fprintf(out, "cmp ax, 0\nje ENDLOOP%d\n", loopNo);
                 genCode(p->children+1, field, out);
                 genCode(p->children+2, field, out);
-                fprintf(out, "jmp STARTLOOP%s\nENDLOOP%s:\n\n", loopNoBuf, loopNoBuf);
+                fprintf(out, "jmp STARTLOOP%d\nENDLOOP%d:\n\n", loopNo, loopNo);
                 loopNo++;
                 break;
 
@@ -343,12 +339,12 @@ void genCode(astree *p, char *field, FILE *out) {
                     fprintf(out, "push ax\n");
                     genCode(p->children+1, field, out);
                     /*
-                    fprintf(out, "mov bx, ax\npop ax\n");
-                    if(p->children[1].children[0].children[0].term.tokenClass == TK_MUL)
-                        fprintf(out, "mul bx\n");
-                    else
-                        fprintf(out, "mov dx, 0\ndiv bx\n");
-                        */
+                       fprintf(out, "mov bx, ax\npop ax\n");
+                       if(p->children[1].children[0].children[0].term.tokenClass == TK_MUL)
+                       fprintf(out, "mul bx\n");
+                       else
+                       fprintf(out, "mov dx, 0\ndiv bx\n");
+                       */
                 }
                 break;
 
@@ -429,76 +425,38 @@ void genCode(astree *p, char *field, FILE *out) {
                     fprintf(out, "\npush ax\n");
                     genCode(p->children+2, field, out);
                     fprintf(out, "\nmov bx, ax\npop ax\ncmp ax, bx\n");
-                    fprintf(out, "pushf\npop eax\n");
+                    //fprintf(out, "pushf\npop eax\n");
                     switch(p->children[1].term.tokenClass) {
                         case TK_LT:
-                            fprintf(out, "and ax, 0880h\n\
-                                        mov cl, 3\n\
-                                        shr ah, cl\n\
-                                        mov cl, 7\n\
-                                        shr al, cl\n\
-                                        xor al, ah\n\
-                                        mov ah, 0\n");
+                            fprintf(out, "jl true%d\n",boolNo);
                             break;
 
                         case TK_LE:
-                            fprintf(out, "mov bl, al\n\
-                                        and ax, 0880h\n\
-                                        mov cl, 3\n\
-                                        shr ah, cl\n\
-                                        mov cl, 7\n\
-                                        shr al, cl\n\
-                                        xor al, ah\n\
-                                        and bl, 40h\n\
-                                        mov cl, 6\n\
-                                        shr bl, cl\n\
-                                        or al, bl\n\
-                                        mov ah, 0\n");
+                            fprintf(out, "jle true%d\n",boolNo);
                             break;
 
                         case TK_EQ:
-                            fprintf(out, "and ax, 0040h\n\
-                                        mov cl, 6\n\
-                                        shr al, cl\n");
+                            fprintf(out, "je true%d\n",boolNo);
                             break;
 
                         case TK_GT:
-                            fprintf(out, "mov bl, al\n\
-                                        and ax, 0880h\n\
-                                        mov cl, 3\n\
-                                        shr ah, cl\n\
-                                        mov cl, 7\n\
-                                        shr al, cl\n\
-                                        xor al, ah\n\
-                                        not al\n\
-                                        and al, 01h\n\
-                                        not bl\n\
-                                        and bl, 40h\n\
-                                        mov cl, 6\n\
-                                        shr bl, cl\n\
-                                        and al, bl\n\
-                                        mov ah, 0\n");
+                            fprintf(out, "jg true%d\n",boolNo);
                             break;
 
                         case TK_GE:
-                            fprintf(out, "and ax, 0880h\n\
-                                        mov cl, 3\n\
-                                        shr ah, cl\n\
-                                        mov cl, 7\n\
-                                        shr al, cl\n\
-                                        xor al, ah\n\
-                                        not al\n\
-                                        and ax, 0001h\n");
+                            fprintf(out, "jge true%d\n",boolNo);
                             break;
 
                         case TK_NE:
-                            fprintf(out, "and ax, 0040h\n\
-                                        mov cl, 6\n\
-                                        shr al, cl\n\
-                                        not al\n\
-                                        and ax, 0001h\n");
+                            fprintf(out, "jne true%d\n",boolNo);
                             break;
                     }
+                    fprintf(out, "false%d:\n\
+                            mov ax, 0\n\
+                            jmp next%d\n\
+                            true%d:\n\
+                            mov ax, 1\n\
+                            next%d:\n", boolNo, boolNo, boolNo, boolNo);
                 }                        
 
             default:

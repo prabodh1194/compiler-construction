@@ -476,7 +476,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     if(message[0]!='O')
                     {
                         if(message[0]=='N')
-                            printf("error: %llu Mismatch in number of output parameters\n",ast->children[j].term.line_num);
+                            printf("error: %llu The number of output parameters at function call <%s> is incorrect\n",ast->children[j].term.line_num,ast->children[j].term.lexeme);
                         else
                             printf("error: %llu In output parameters %s\n",ast->children[j].term.line_num,message);
                         return;
@@ -488,7 +488,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     if(message[0]!='O')
                     {
                         if(message[0]=='N')
-                            printf("error: %llu Mismatch in number of input parameters\n",ast->children[j].term.line_num);
+                            printf("error: %llu The number of input parameters at function call <%s> is incorrect\n",ast->children[j].term.line_num,ast->children[j].term.lexeme);
                         else
                             printf("error: %llu In input parameters %s\n",ast->children[j].term.line_num,message);
                         return;
@@ -525,7 +525,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 if(message[0]!='O')
                 {
                     if(message[0]=='N')
-                        printf("error: %llu Mismatch in number of output parameters\n",ast->children[0].term.line_num);
+                        printf("error: %llu The number of output parameters at return of function <%s> is incorrect\n",ast->children[j].term.line_num,name);
                     else
                         printf("error: %llu In output parameters %s\n",ast->children[0].term.line_num,message);
                     return;
