@@ -96,6 +96,11 @@ int main(int argc, char **args)
             case 3:
                 if(!flags[3-1])
                 {
+                    if(flags[2-1])
+                    {
+                        printf("The code contains syntactic errors. Please fix them\n");
+                        break;
+                    }
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
@@ -106,6 +111,11 @@ int main(int argc, char **args)
             case 4:
                 if(!flags[4-1])
                 {
+                    if(flags[2-1] || flags[3-1])
+                    {
+                        printf("Code contains errors. Please fix them first\n");
+                        break;
+                    }
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
@@ -118,6 +128,11 @@ int main(int argc, char **args)
             case 5:
                 if(!flags[5-1])
                 {
+                    if(flags[2-1])
+                    {
+                        printf("Code contains syntactic errors\n");
+                        break;
+                    }
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
@@ -129,7 +144,7 @@ int main(int argc, char **args)
             case 6:
                 if(flags[6-1])
                 {
-                    printf("Code already compiled once\n");
+                    printf("Code already compiled. Restart driver.\n");
                     break;
                 }
                 getNextToken(fp,to);
@@ -143,6 +158,7 @@ int main(int argc, char **args)
                 if(!syntactic)
                     break;
                 flags[2-1] = 1;
+                printf("Code successfully analyzed for syntactic errors\n");
                 populateGlobalRecords(tree, NULL, -1);
                 flags[5-1] = 1;
                 populateFunctionST(tree, NULL,-1);
@@ -156,8 +172,12 @@ int main(int argc, char **args)
             case 7:
                 if(flags[7-1])
                     genCode(ast, NULL, fopen(args[2],"w"));
+                else if(flags[2-1] && !flags[3-1])
+                    printf("Syntactic errors exist in code\n");
+                else if(flags[2-1] && flags[3-1] && !flags[7-1])
+                    printf("Semantic errors exist in code\n");
                 else
-                    printf("Errors exist in code\n");
+                    printf("Compile code first by pressing 6\n");
             case 8:
                 break;
             default:

@@ -41,7 +41,7 @@
  * <arithmetixExpression> = a2 and so on, hence read as 2 characters at once
  */
 
-int parseSize = 0, astSize = 0;
+int parseSize = 0, astSize = 0; //maintain a count of nodes in an AST and parse tree
 short syntactic = 1; //successful syntactic
 short semantic  = 1; //successful semantic
 
@@ -346,23 +346,35 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 
 //construct an AST by removing useless nodes from the parse tree
 
+//used to maintain detect if identifiers defined in a while boolean expression
+//get updated or not
 identifier_list *whileList = NULL;
 short whileState = 0, isUpdate = 0;
 
+/*
+* char *name is used to maintain state of the program and is used for type
+* checking and sumbol table look ups as it carries the name of the function, the AST/parse tree is
+* currently in.
+*/
 void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 {
-    /* recursively constructs the abstract syntax tree
-     * by removing "useless" nodes from the parse tree
-     * the ast must be initialized to the program node
-     * every call constructs a subtree of the ast
-     * rooted at the current nonterminal
+    /*
+     * Certain terminals are defined as useless as their purpose is already
+     * captured in the parse tree. These terminals have been used to capture
+     * precedence or to indicate line ends and so on and serve no purpose in asm
+     * code generated. These terminal nodes are trimmed off to reduce the
+     * abstract syntax tree. Also, certain intermediate non-terminal nodes,
+     * those having singular child nodes are removed. In this manner, Abstract
+     * Syntax Tree is compressed from the parse tree.
      */
-    int i, j, usefulChildrenCount = 0;
+    
+    int i, j, usefulChildrenCount = 0; //useful children count keeps track of nodes that'll be useful to the AST
     terminalId type;
     identifier_list *id, *id1;
     char *typeS;
-    char message[200];
+    char message[200]; //used to capture error messages
 
+    //check for useless terminal nodes
     for(i = 0; i < p->nochildren; i++)
         // all nonterminals are useful
         if(!p->children[i].isTerminal || isUseful(p->children[i].term.tokenClass))
@@ -390,9 +402,18 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
                 if(ast->children[j].term.tokenClass == TK_FUNID && ast->nonterm == function)
                     name = ast->children[j].term.lexeme;
+                /*
+                 * The name of function the parse tree is currently in, all
+                 * subsequent IDs are scoped in this function unless specified
+                 * otherwise
+                 */
 
                 if((ast->children[j].term.tokenClass == TK_ID || ast->children[j].term.tokenClass == TK_FIELDID) && ast->nonterm!=parameter_list && ast->nonterm!=declaration && ast->nonterm!=funCallStmt && ast->nonterm!=fieldDefinition)
                 {
+                    /*
+                     * Find out if TK_ID used in <stmt> has actually been
+                     * declared in function scope or globally.
+                     */
                     ast->line_num = ast->children[j].term.line_num;
                     if(ast->children[j].term.tokenClass == TK_ID)
                     {
@@ -407,8 +428,13 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         }
                         if(id == NULL)
                             id = id1;
+                        //make a list of all ids in while boolean expression
                         if(whileState == 1 && id!=NULL)
                             whileList = addIdentifier(whileList, id->name, id->type, 0);
+                        /* 
+                        * for ids occuring on LHS of assignment stmts, check if
+                        * they occur in while boolean expressions
+                        */
                         if(i == 0 && !isUpdate && whileList!=NULL && p->nonterm==singleOrRecId && id!=NULL)
                         {
                             identifier_list *temp;
@@ -425,7 +451,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         }
                     }
                     else
-                        id = search_function_wise_identifier_hashtable(record, name, ast->children[j].term.lexeme);
+                        id = search_function_wise_identifier_hashtable(record, name, ast->children[j].term.lexeme); /* Check if given field id actually exists*/
 
                     if(id == NULL)
                     {
@@ -435,10 +461,15 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     }
 
                     typeS = id->type;
+                    //capture name of current record type of given id, given field id is declared in
                     if(p->children[i].term.tokenClass!=TK_FIELDID && p->children[i+1].nochildren!=0 && p->children[i+1].children[0].term.tokenClass!= eps && p->nonterm!=idList)
                         name = typeS;
                     else
                     {
+                        /*
+                        * capture type of IDs and propogate to parent nodes with
+                        * subsequent type checks with sibling nodes 
+                        */
                         if(strcmp(typeS,"int")==0)
                             type = TK_INT;
                         else if(strcmp(typeS,"real")==0)
@@ -454,6 +485,10 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 }
                 else if(ast->children[j].term.tokenClass == TK_NUM && ast->nonterm!=funCallStmt)
                 {
+                    /*
+                     * capture type of IDs and propogate to parent nodes with
+                     * subsequent type checks with sibling nodes 
+                     */
                     ast->line_num = ast->children[j].term.line_num;
                     if(ast->type == -1 || ast->type == TK_INT)
                         ast->type = TK_INT;
@@ -462,6 +497,10 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 }
                 else if(ast->children[j].term.tokenClass == TK_RNUM && ast->nonterm!=funCallStmt)
                 {
+                    /*
+                     * capture type of IDs and propogate to parent nodes with
+                     * subsequent type checks with sibling nodes 
+                     */
                     ast->line_num = ast->children[j].term.line_num;
                     if(ast->type == -1 || ast->type == TK_REAL)
                         ast->type = TK_REAL;
@@ -476,7 +515,12 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         semantic = 0;
                         return;
                     }
+                    /*
+                     * for function call stmts, check if input/output parameters
+                     * match types and number of arguments
+                     */
                     id = NULL;
+                    //make a list of ids defined as output of funtion call
                     id = getParams(p->children, id, name, 0);
                     bzero(message, 200);
                     compare_parameter_list_type(id, get_output_parameter_list(funcs, ast->children[j].term.lexeme), message);
@@ -490,6 +534,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         return;
                     }
                     id1 = NULL;
+                    //make a list of ids defined as input of funtion call
                     id1 = getParams(p->children+5, id1, name, 0);
                     bzero(message, 200);
                     compare_parameter_list_type(id1, get_input_parameter_list(funcs, ast->children[j].term.lexeme), message);
@@ -508,7 +553,7 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
             }
         }
         else {
-            // recursively construct the ast rooted here
+            //recursively construct the ast rooted here
             parseTree *temp = p->children;
             temp+=i;
             int nochildrenl;
@@ -526,6 +571,9 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
 
             if(ast->nonterm == returnStmt)
             {
+                /*
+                 * match if return type of function matches with the definition
+                 */
                 id = id1 = NULL;
                 id1 = get_output_parameter_list(funcs, name);
                 id = getParams(p, id, name, 0);
@@ -541,12 +589,17 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     return;
                 }
             }
+            //maintain state to work on while statement semantics
             else if(ast->children[i].nonterm == iterativeStmt)
                 whileState = 1;
             else if(whileState && ast->nonterm == stmt)
                 whileState = 2;
 
             createAbstractSyntaxTree(temp, &ast->children[j], name);
+
+            //after this part, the jth child node will carry its type info and
+            //parent node will compare it with its current type or adopt its
+            //type
 
             if(ast->children[i].nonterm == iterativeStmt && whileState==2)
             {
@@ -559,6 +612,11 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                 whileList = NULL;
                 whileState = 0;
             }
+            //type checking by extracting the type of children nodes if parent
+            //doesn't jnow the type, otherwise, parent node checks if all
+            //children nodes have same type. In case, this ain't the situation,
+            //the parent sets type as error. This node's type further propogates
+            //to parent.
             if(ast->type == -1)
             {
                 ast->type = ast->children[j].type;
@@ -580,12 +638,14 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     ast->type = TK_RECORD;
             }
 
+            //display errorneous children types
             if(ast->type == TK_ERROR && (ast->nonterm == assignmentStmt || ast->nonterm == booleanExpression))
             {
                 printf("error: %llu Type mismatch\n",ast->line_num);
                 semantic = 0;
             }
 
+            //compress AST by removing nodes having singular child
             if(ast->children[j].nochildren==0)
             {
                 ast->nochildren-=1;
