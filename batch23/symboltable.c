@@ -427,10 +427,21 @@ void print_function_hashtable(function_hashtable* h){
 	}
 }
 
+void print_list(identifier_list* list, char *type){
+	if(list == NULL)
+		return NULL;
+	else{
+		print_list(list->next);
+		strcat(type,list->type);
+		strcat(type," x ");
+		return ;
+	}
+}
 //Function to print the Local Identifier Table of the given function fname in the specified format
-void print_identifier_hashtable(identifier_hashtable *h,char *fname){
+void print_identifier_hashtable(identifier_hashtable *h,char *fname, function_wise_identifier_hashtable* record_table){
 	int i, offset=0;
-	identifier_list* current_pointer;
+	identifier_list* current_pointer,record_fields;
+	char type[10000];
 	for (i=0;i<h->size;i++){
 		current_pointer = h->table[i];
 		if(fname == NULL){
@@ -439,7 +450,13 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname){
 		}
 		while(current_pointer != NULL){
 			printf("%23s", current_pointer->name);
-			printf("%19s", current_pointer->type);
+			if(current_pointer->type[0]=='#'){
+				record_fields = get_record_fields(record_table,current_pointer->type);
+				print_list(record_fields,type);
+				printf("%19s",type);
+			}
+			else
+				printf("%19s", current_pointer->type);
 			printf("%21s", fname);
 			if(strcmp(fname,"Global")==0)
 				printf("              -\n");	
@@ -451,7 +468,7 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname){
 }
 
 //Wrapper function which helps print the local identifer table of all functions in the specified format
-void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h){
+void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h, function_wise_identifier_hashtable* record_table){
 	int i;
 	function_identifier_node* current_pointer;
 	identifier_hashtable* current_identifier_hashtable;
@@ -461,7 +478,7 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 
 		while(current_pointer != NULL){
 			current_identifier_hashtable = current_pointer->id_hashtable;
-			print_identifier_hashtable(current_identifier_hashtable, current_pointer->fname); //print the identifer table of fname
+			print_identifier_hashtable(current_identifier_hashtable, current_pointer->fname, record_table); //print the identifer table of fname
 			current_pointer = current_pointer->next;// in case of chaining move on to the next function
 		}
 	}

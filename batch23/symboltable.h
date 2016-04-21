@@ -26,6 +26,7 @@ identifier_list* get_input_parameter_list(function_hashtable* h, char *fname);
 identifier_list* get_output_parameter_list(function_hashtable* h, char *fname);
 void print_function_hashtable(function_hashtable* h);
 void print_identifier_hashtable(identifier_hashtable *h, char *fname);
-void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h);
+void print_list(identifier_list* list, char *type);
+void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable* h, function_wise_identifier_hashtable* record);
 void compare_parameter_list_type(identifier_list* i1, identifier_list* i2, char* returnmsg);
 #endif
