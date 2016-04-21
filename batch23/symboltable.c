@@ -429,9 +429,9 @@ void print_function_hashtable(function_hashtable* h){
 
 void print_list(identifier_list* list, char *type){
 	if(list == NULL)
-		return NULL;
+		return ;
 	else{
-		print_list(list->next);
+		print_list(list->next, type);
 		strcat(type,list->type);
 		strcat(type," x ");
 		return ;
@@ -440,7 +440,7 @@ void print_list(identifier_list* list, char *type){
 //Function to print the Local Identifier Table of the given function fname in the specified format
 void print_identifier_hashtable(identifier_hashtable *h,char *fname, function_wise_identifier_hashtable* record_table){
 	int i, offset=0;
-	identifier_list* current_pointer,record_fields;
+	identifier_list* current_pointer,*record_fields;
 	char type[10000];
 	for (i=0;i<h->size;i++){
 		current_pointer = h->table[i];
