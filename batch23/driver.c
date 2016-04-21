@@ -135,7 +135,7 @@ int main(int argc, char **args)
                 //print_function_hashtable(funcs);
                 print_function_wise_identifier_hashtable(local, record);
                 //print_function_wise_identifier_hashtable(record);
-                print_identifier_hashtable(global, NULL);
+                print_identifier_hashtable(global, NULL, record);
                 break;
             case 6:
                 if(flags[6-1])
