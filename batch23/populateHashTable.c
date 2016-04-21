@@ -7,7 +7,17 @@
 #include "populateHashTable.h"
 #include <string.h>
 
+/*
+ * there exist four symbol tables in total.
+ * for local identifiers
+ * for global identifiers
+ * for maintaining record definitions
+ * for maintaining input/output parameters of functions
+ */
+
 extern short semantic;
+//called to populate global identifiers symbol table the record data structure
+//information in respective symbol tables
 void populateGlobalRecords(parseTree *p, char *rname, int state)
 {
     int i, nochildren = p->nochildren, offset;
@@ -16,6 +26,7 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
     for (i = 0; i < nochildren; i++) 
     {
         offset = 4;
+        //populate hashtable for global identifier declarations
         if(p->nonterm == declarations)
             state = declarations;
         if(p->nonterm == declaration && state == declarations)
@@ -47,6 +58,7 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
             }
         }
 
+        //fill record defintions' hashtable
         if(p->nonterm == typeDefinition)
         {
             rname = p->children[1].term.lexeme;
@@ -54,6 +66,7 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
         }
         else if(p->nonterm == fieldDefinition && state == typeDefinition)
         {
+            //fieldDefinition = TK_TYPE primitiveDatatype TK_COLON TK_FIELDID TK_SEM
             if(p->children[i].term.tokenClass == TK_FIELDID)
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
@@ -67,7 +80,6 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
                     printf("error: %llu Field identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
                     semantic = 0;
                 }
-
             }
             continue;
         }
@@ -75,13 +87,25 @@ void populateGlobalRecords(parseTree *p, char *rname, int state)
     }
 }
 
+/*
+ * this function is used to populate symbol table with identifiers in function
+ * scope and also maintains information of function parameters
+ * fname is used to maintain name of current function the parsetree is in. this
+ * is used to maintain scope information for identifier declaration. To maintain
+ * local scope, every function has its own hashtable and local identifiers hash
+ * to this table. These individual function tables are in turn hashed to one
+ * common structure. A document has been submitted to detail how we have
+ * constructed our symbol tables. A separate symbol table exists to hold info
+ * regarding input and output parameters of the functions. This is used for type
+ * checking in function call statements.
+ */
 void populateFunctionST(parseTree *p, char *fname, int state)
 {
     int i, nochildren = p->nochildren, offset = 4;
     identifier_list *id;
     for(i=0;i<nochildren;i++)
     {
-        offset = 4;
+        offset = 4; //offset for real identifier declarations
         if(p->term.tokenClass == TK_SEM)
             state = -1;
 
@@ -93,10 +117,12 @@ void populateFunctionST(parseTree *p, char *fname, int state)
 
         if(p->nonterm == function)
         {
+            //capture function name
             fname = p->children[0].term.lexeme;
             if(state!=function)
                 if(add_function(funcs, fname, NULL, TK_FUNID)==-1)
                 {
+                    //initialize symbol table for the function
                     printf("error: %llu Function overloading not allowed\n",p->children[0].term.line_num);
                     semantic = 0;
                     return;
@@ -109,15 +135,19 @@ void populateFunctionST(parseTree *p, char *fname, int state)
             state = output_par;
         else if(p->nonterm == parameter_list && state!=-1)
         {
+            //populate symbol table with input and output parameter information
+            //and ensure given parameter hasn't been declared as global
             if(p->children[i].term.tokenClass == TK_ID)
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
                 id->name = p->children[i].term.lexeme;
+                //record type identifier
                 if(p->children[i-1].children[0].nonterm == constructedDatatype)
                 {
                     id->type = p->children[i-1].children[0].children[1].term.lexeme;
                     offset = get_record_size(record, id->type);
                 }
+                //non-record type identifier
                 else
                 {
                     id->type = p->children[i-1].children[0].children[0].term.lexeme;
@@ -145,6 +175,8 @@ void populateFunctionST(parseTree *p, char *fname, int state)
             state = declaration;
         if(p->nonterm == declaration && state!=-1)
         {
+            //handle local identifier declarations and ensure multiple
+            //declarations don't happen and don't collide with global declarations
             if(p->children[i].term.tokenClass == TK_ID)
             {
                 id = (identifier_list *)malloc(sizeof(identifier_list));
@@ -163,16 +195,16 @@ void populateFunctionST(parseTree *p, char *fname, int state)
                 id->next = NULL;
                 if(p->children[i+1].children[0].term.tokenClass==eps)
                 {
-                if(search_global_identifier(global, id->name)!=NULL)
-                {
-                    printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-                    semantic = 0;
-                }
-                else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
-                {
-                    printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
-                    semantic = 0;
-                }
+                    if(search_global_identifier(global, id->name)!=NULL)
+                    {
+                        printf("error: %llu Identifier %s declared global elsewhere\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                        semantic = 0;
+                    }
+                    else if(add_function_local_identifier_hashtable(local, fname, id, offset)==-1)
+                    {
+                        printf("error: %llu Identifier %s declared multiple times\n",p->children[i].term.line_num, p->children[i].term.lexeme);
+                        semantic = 0;
+                    }
                 }
             }
             continue;
@@ -191,6 +223,10 @@ void populateFunctionST(parseTree *p, char *fname, int state)
     }
 }
 
+//this function is used repeatedly during function call typechecking to populate
+//a list with input or output parameters in function call statements. The
+//returned list is matched with that from the symbol table for type checking
+//purposes
 identifier_list * getParams(parseTree *p, identifier_list *list, char *func, int start)
 {
     int i;

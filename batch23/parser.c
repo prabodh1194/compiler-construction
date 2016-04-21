@@ -351,6 +351,8 @@ int parseInputSourceCode(FILE *sourceCodeFile, table tb, grammar g, parseTree *r
 identifier_list *whileList = NULL;
 short whileState = 0, isUpdate = 0;
 
+//semantic analysis and type checking have been performed during AST creation
+
 /*
 * char *name is used to maintain state of the program and is used for type
 * checking and sumbol table look ups as it carries the name of the function, the AST/parse tree is
@@ -432,9 +434,9 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                         if(whileState == 1 && id!=NULL)
                             whileList = addIdentifier(whileList, id->name, id->type, 0);
                         /* 
-                        * for ids occuring on LHS of assignment stmts, check if
-                        * they occur in while boolean expressions
-                        */
+                         * for ids occuring on LHS of assignment stmts, check if
+                         * they occur in while boolean expressions
+                         */
                         if(i == 0 && !isUpdate && whileList!=NULL && p->nonterm==singleOrRecId && id!=NULL)
                         {
                             identifier_list *temp;
@@ -517,7 +519,8 @@ void createAbstractSyntaxTree(parseTree *p, astree *ast, char *name)
                     }
                     /*
                      * for function call stmts, check if input/output parameters
-                     * match types and number of arguments
+                     * match types and number of arguments by fetching from the
+                     * symbol table and making a list of existing parameters
                      */
                     id = NULL;
                     //make a list of ids defined as output of funtion call

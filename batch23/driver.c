@@ -30,11 +30,7 @@ int main(int argc, char **args)
     FILE *fp = fopen(args[1],"r");
     FILE *outfile = stdout;
 
-    printf("\n(a) FIRST and FOLLOW set automated");
-    printf("\n(b) Both lexical and syntax analysis modules implemented");
-    printf("\n(c) Modules compile suxxefully");
-    printf("\n(d) modules work with all testcases");
-    printf("\n(e) Parse tree constructed\n");
+    printf("LEVEL 4: AST/ Symbol table/ Type checking/ Semantic analysis/ Code generation\n");
 
     grammar g; //data structure to store grammar as a double dimensional array of respective enums
     table t; //parse table data structure, rows=NON TERMINAL cols=TERMINALS, cells=rule numbers indexing into grammar g
@@ -137,7 +133,7 @@ int main(int argc, char **args)
                     break;
                 }
                 //print_function_hashtable(funcs);
-                print_function_wise_identifier_hashtable(local);
+                print_function_wise_identifier_hashtable(local, record);
                 //print_function_wise_identifier_hashtable(record);
                 print_identifier_hashtable(global, NULL);
                 break;
@@ -153,25 +149,29 @@ int main(int argc, char **args)
                 ast->children = NULL; 
                 tree->children = NULL;
                 parseInputSourceCode(fp,t,g,tree,to);
+                flags[2-1] = 1;
                 flags[6-1] = 1;
                 fclose(fp);
                 if(!syntactic)
                     break;
-                flags[2-1] = 1;
                 printf("Code successfully analyzed for syntactic errors\n");
                 populateGlobalRecords(tree, NULL, -1);
                 flags[5-1] = 1;
                 populateFunctionST(tree, NULL,-1);
                 createAbstractSyntaxTree(tree, ast, NULL);
+                flags[3-1] = 1;
                 if(syntactic && semantic)
                 {
                     printf("Code compiled successfully\n");
-                    flags[4-1] = flags[6-1] = flags[7-1] = flags[3-1] = 1;
+                    flags[4-1] = flags[6-1] = flags[7-1] =  1;
                 }
                 break;
             case 7:
                 if(flags[7-1])
-                    genCode(ast, NULL, fopen(args[2],"w"));
+                {
+                    createAsm(ast, NULL, fopen(args[2],"w"));
+                    printf("ASM file generated successfully. It has been assumed that input file contains only main and performs only integer operations. Input of real numbers will lead to SEGFAULT during out file execution. Use following options to execute the file.\n\nnasm -f elf %s\nld -m elf_i386 -o a.out %s\b\b\bo  \n",args[2], args[2]);
+                }
                 else if(flags[2-1] && !flags[3-1])
                     printf("Syntactic errors exist in code\n");
                 else if(flags[2-1] && flags[3-1] && !flags[7-1])
