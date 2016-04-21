@@ -165,6 +165,8 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 		h->table[index]->offset = 0;
 		h->table[index]->size = 0 ;
 		flag = add_identifier_to_identifierhashtable(h->table[index]->id_hashtable, idlist->name, idlist->type,h->table[index]->offset);
+		if(flag == -1)
+			return flag;
 		h->table[index]->offset += offset;
 		h->table[index]->size += offset;
 		return flag;
@@ -194,11 +196,11 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 			new_entry->offset = 0;
 			//inserts the given identifier in the local identifier symbol table of the function
 			flag = add_identifier_to_identifierhashtable(new_entry->id_hashtable, idlist->name, idlist->type, new_entry->offset);
-			new_entry->offset += offset;
-			new_entry->size += offset;
-			
 			if (flag == -1)
 				return flag;
+			
+			new_entry->offset += offset;
+			new_entry->size += offset;
 			//puts the newly created function_identifier_node at the head of the hashed location i.e. chaining
 			new_entry->next = h->table[index];
 			h->table[index] = new_entry;
@@ -210,6 +212,9 @@ int add_function_local_identifier_hashtable(function_wise_identifier_hashtable *
 		*/
 		else{
 			flag = add_identifier_to_identifierhashtable(temp->id_hashtable, idlist->name, idlist->type, temp->offset);
+			if (flag == -1){
+				return flag;
+			}	
 			temp->offset += offset;
 			temp->size += offset;
 			
@@ -432,9 +437,13 @@ void print_list(identifier_list* list, char *type){
 		return ;
 	else{
 		print_list(list->next, type);
-		strcat(type,list->type);
-		strcat(type," x ");
-		return ;
+		if(list->type == NULL)
+			return;
+		else{
+			strcat(type,list->type);
+			strcat(type," x ");
+			return ;
+		}
 	}
 }
 //Function to print the Local Identifier Table of the given function fname in the specified format
@@ -452,11 +461,16 @@ void print_identifier_hashtable(identifier_hashtable *h,char *fname, function_wi
 			printf("%23s", current_pointer->name);
 			if(current_pointer->type[0]=='#'){
 				record_fields = get_record_fields(record_table,current_pointer->type);
+				strcat(type,current_pointer->type);
+				strcat(type," (");
 				print_list(record_fields,type);
-				printf("%19s",type);
+				type[strlen(type)-3]=')';
+				type[strlen(type)-2]='\0';
+				printf("%39s",type);
+				strcpy(type,"");
 			}
 			else
-				printf("%19s", current_pointer->type);
+				printf("%39s", current_pointer->type);
 			printf("%21s", fname);
 			if(strcmp(fname,"Global")==0)
 				printf("              -\n");	
@@ -472,7 +486,7 @@ void print_function_wise_identifier_hashtable(function_wise_identifier_hashtable
 	int i;
 	function_identifier_node* current_pointer;
 	identifier_hashtable* current_identifier_hashtable;
-	printf("                 Lexeme               Type                Scope         Offset \n");
+	printf("                 Lexeme                                   Type                Scope         Offset \n");
 	for (i=0;i<h->size;i++){//iterating through all functions' identifier tables and printing them one by one
 		current_pointer = h->table[i];
 
