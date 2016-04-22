@@ -91,7 +91,7 @@ int main(int argc, char **args)
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
-                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
+                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t      token\t    valueIfNumber\t      NodeSymbol\t    parentNodeSymbol \t isLeafNode\t");
                 printParseTree(tree, outfile);
                 printf("\n");
                 //printf("\nUse gedit outfile.txt to view the parse tree\n");
@@ -107,7 +107,7 @@ int main(int argc, char **args)
                     printf("Compile code first by pressing 6\n");
                     break;
                 }
-                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t\t      token\t\t    valueIfNumber\t\t      NodeSymbol\t\t    parentNodeSymbol \t isLeafNode\t");
+                fprintf(outfile, "\n   lexemeCurrentNode\t    lineno\t      token\t    valueIfNumber\t      NodeSymbol\t    parentNodeSymbol \t isLeafNode\t");
                 printasTree(ast, outfile);
                 printf("\n");
                 break;

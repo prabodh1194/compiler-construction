@@ -375,10 +375,10 @@ void printParseTree(parseTree *p, FILE *outfile)
         else
             strcpy(n , "----");
         if(t->isTerminal)
-            fprintf(outfile,"\n%20s%12llu    %15s        %16s                                %20s        yes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
+            fprintf(outfile,"\n%20s%12llu    %15s     %16s                                %20s        yes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
         else
         {
-            fprintf(outfile,"\n                ----         ----              ----%21s%24s        %20s         no",n,tokenName(t->nonterm),tokenName(p->nonterm));
+            fprintf(outfile,"\n                ----          ----             ----%21s%24s        %20s         no",n,tokenName(t->nonterm),tokenName(p->nonterm));
             printParseTree(t, outfile);
         }
     }
@@ -403,10 +403,10 @@ void printasTree(astree *p, FILE *outfile)
         else
             strcpy(n , "----");
         if(t->isTerminal)
-            fprintf(outfile,"\n%20s%12llu    %15s        %16s                                %20s        yes    ",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
+            fprintf(outfile,"\n%20s%12llu    %15s     %16s                                %20s        yes",t->term.lexeme,t->term.line_num,tokenName(t->term.tokenClass),n,tokenName(p->nonterm));
         else
         {
-            fprintf(outfile,"\n                ----         ----              ----%21s%24s        %20s         no    ",n,tokenName(t->nonterm),tokenName(p->nonterm));
+            fprintf(outfile,"\n                ----          ----             ----%21s%24s        %20s         no",n,tokenName(t->nonterm),tokenName(p->nonterm));
             printasTree(t, outfile);
         }
     }
