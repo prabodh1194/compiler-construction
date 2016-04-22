@@ -1064,20 +1064,23 @@ void printTok(char *file)
     t= (tokenInfo*) malloc(sizeof(tokenInfo));
     fp = fopen(file,"r");
     getNextToken(fp,t);
-    printf("Line  Col\t\tToken\tLexeme\n");
-    printf("%4llu:",t->line_num);
-    printf("%3ld ",t->col);
-    printf("%15s\t",tokenName(t->tokenClass));
-    printf("%15s\n",t->lexeme);
-
-    while(t->tokenClass != TK_EOF)
+    if(t->tokenClass != TK_EOF)
     {
-        bzero(t,sizeof(tokenInfo));
-        getNextToken(fp,t);
+        printf("Line  Col\t\tToken\tLexeme\n");
         printf("%4llu:",t->line_num);
-        printf("%3ld",t->col);
+        printf("%3ld ",t->col);
         printf("%15s\t",tokenName(t->tokenClass));
         printf("%15s\n",t->lexeme);
+
+        while(t->tokenClass != TK_EOF)
+        {
+            bzero(t,sizeof(tokenInfo));
+            getNextToken(fp,t);
+            printf("%4llu:",t->line_num);
+            printf("%3ld",t->col);
+            printf("%15s\t",tokenName(t->tokenClass));
+            printf("%15s\n",t->lexeme);
+        }
     }
     line_num =1;
     col =1;

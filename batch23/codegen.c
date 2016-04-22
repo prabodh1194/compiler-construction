@@ -1,7 +1,11 @@
-/* codegen.c: implements the code generator
- *
- * Group 23 - Prabodh Agarwal (2012B1A7801P), Prabodh Agarwal (2012B1A7801P)
- */
+/*
+   BATCH NUMBER: 23
+   PRABODH AGARWAL 2012B1A7801P
+   DEEPANSHU SINGH 2012B3A7593P
+
+   codegen.c:
+
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -418,8 +422,13 @@ void createAsm(astree *p, char *field, FILE *out) {
                     //termPrime = mulDiv termPrime
                     if(p->children[1].term.tokenClass == TK_ID)
                         fprintf(out,"mov bx, [%s]\n",p->children[1].term.lexeme);
-                    else
+                    else if(p->children[1].isTerminal)
                         fprintf(out,"mov bx, %s\n",p->children[1].term.lexeme);
+                    else if(!p->children[1].isTerminal)
+                    {
+                        createAsm(p->children+1, field, out);
+                        fprintf(out,"mov bx, ax\n");
+                    }
                     fprintf(out,"pop ax\n");
                     if(p->children[0].term.tokenClass == TK_MUL)
                         fprintf(out,"mul bx\n");
@@ -462,11 +471,11 @@ void createAsm(astree *p, char *field, FILE *out) {
                 break;
 
             case all:
-                if(p->nochildren == 1 || p->children[1].nochildren == 1) {
-                    fprintf(out, "mov ax, ");
+                if(p->nochildren == 1) {
                     createAsm(p->children, field, out);
-                    fprintf(out, "\n");
                 }
+                else if(p->nochildren == 2)
+                    fprintf(out, "mov ax, [%s_%s]\n",p->children[0].term.lexeme, p->children[1].term.lexeme);
                 break;
 
             case booleanExpression:

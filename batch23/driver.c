@@ -3,7 +3,7 @@
    PRABODH AGARWAL 2012B1A7801P
    DEEPANSHU SINGH 2012B3A7593P
 
-   driver.c:
+   driver.h
 
 */
 
@@ -24,6 +24,13 @@ extern short syntactic; //syntactic flag
 extern short semantic;  //semantic flag
 int main(int argc, char **args)
 {
+
+    if(argc < 3)
+    {
+        printf("Usage:: ./toycompiler <source code> <asm out file>\n\n");
+        return -1;
+    }
+
     int i,j,choice,flag=0;
     short flags[] = {0,0,0,0,0,0,0};
 
@@ -72,7 +79,7 @@ int main(int argc, char **args)
                 if(flags[1-1])
                 {
                     printf("Token list can be printed only once\n");
-                    break;
+                    //break;
                 }
                 printf("Printing tokens\n");
                 printTok(args[1]);
@@ -92,7 +99,7 @@ int main(int argc, char **args)
             case 3:
                 if(!flags[3-1])
                 {
-                    if(flags[2-1])
+                    if(flags[2-1] && syntactic)
                     {
                         printf("The code contains syntactic errors. Please fix them\n");
                         break;
@@ -133,6 +140,7 @@ int main(int argc, char **args)
                     break;
                 }
                 //print_function_hashtable(funcs);
+                printf("Assumptions:\nThe symbol table has values after hashing, hence the display order of fields in record might be jumbled compared to the order in source code.\n");
                 print_function_wise_identifier_hashtable(local, record);
                 //print_function_wise_identifier_hashtable(record);
                 print_identifier_hashtable(global, NULL, record);
@@ -159,18 +167,18 @@ int main(int argc, char **args)
                 flags[5-1] = 1;
                 populateFunctionST(tree, NULL,-1);
                 createAbstractSyntaxTree(tree, ast, NULL);
-                flags[3-1] = 1;
+                flags[4-1] = flags[3-1] = 1;
                 if(syntactic && semantic)
                 {
                     printf("Code compiled successfully\n");
-                    flags[4-1] = flags[6-1] = flags[7-1] =  1;
+                    flags[7-1] =  1;
                 }
                 break;
             case 7:
                 if(flags[7-1])
                 {
                     createAsm(ast, NULL, fopen(args[2],"w"));
-                    printf("ASM file generated successfully. It has been assumed that input file contains only main and performs only integer operations. Input of real numbers will lead to SEGFAULT during out file execution. Use following options to execute the file.\n\nnasm -f elf %s\nld -m elf_i386 -o a.out %s\b\b\bo  \n",args[2], args[2]);
+                    printf("ASM file generated successfully.\nIt has been assumed that input file contains only main and performs only integer operations.\nInput of real numbers will lead to SEGFAULT during out file execution. Use following options to execute the file.\n\nnasm -f elf %s\nld -m elf_i386 -o a.out %s\b\b\bo  \n\n",args[2], args[2]);
                 }
                 else if(flags[2-1] && !flags[3-1])
                     printf("Syntactic errors exist in code\n");

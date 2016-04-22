@@ -1,0 +1,57 @@
+%Test Case 2
+%Following program computes the average marks obtained by students in three subjects
+
+%Following function reads marks of a student in all subjects and returns as a record variable
+% Note that the variable b7 is not used anywhere but it is the syntactic requirement to have 
+% atleast one input parameter
+
+%The following program computes the average of marks of total d5cb34567  students
+_main 
+	record #marks
+		type int: maths; 
+		type int: physics; 
+		type int: chemistry;
+	endrecord;
+	% each field above represents the marks obtained in corresponding subject
+
+	type record #marks : d4;
+	% The variable d4 stores the marks of one student
+
+    type int : b3:global;
+	type int : b5;
+	type int : d5cb34567;
+	type record #marks : b5c6;
+	%The identifier b5c6 stores the sum of marks
+
+    d4 <--- d4+d4;
+    b5 <--- d5cb34567;
+	b5 <--- 1;
+	read(b5);
+	b5c6.maths <--- 10;
+	b5c6.physics <--- 10;
+	b5c6.chemistry <---10;
+    b5c6.maths <--- b5c6.chemistry+5*(2+3)+b5;
+
+    write(b5c6.maths);
+
+    % above displays the sum of records
+
+    if(b5 <= 5) then
+        while(b5<5)
+            b5 <--- b5+1;
+        endwhile
+    else
+        while(b5<20)
+            b5 <--- b5*2;
+        endwhile
+    endif
+
+    write(b5);
+    write(b5c6);
+
+	d4 <--- b5c6 / b5;
+	write(d4.maths);
+	write(d4.physics);
+	write(d4.chemistry);
+	return;
+end
